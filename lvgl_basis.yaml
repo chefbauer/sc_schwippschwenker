@@ -126,7 +126,6 @@ lvgl:
                   height: 490
                   align: TOP_MID
                   y: 100
-                  tab_pos: TOP
                   tabs:
                     # Tab 1: Bildschirm
                     - name: "Bildschirm"
