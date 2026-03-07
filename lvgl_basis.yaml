@@ -14,15 +14,13 @@ font:
     id: font_title
     size: 60
     bpp: 4
-    glyphs: |-
-      !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~"
 
   - file: "gfonts://Roboto@400"
     id: font_normal
     size: 28
     bpp: 4
-    glyphs: |-
-      !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~"
 
 # LVGL Configuration
 lvgl:
@@ -91,7 +89,7 @@ lvgl:
                   y: -20
                   widgets:
                     - label:
-                        text: "⚙ Einstellungen"
+                        text: "Einstellungen"
                         text_font: font_normal
                         text_color: 0xFFFFFF  # Weiß
                         align: CENTER
@@ -108,7 +106,7 @@ lvgl:
             id: settings_container
             width: 1024
             height: 600
-            bg_color: 0xFFFFFF  # Weiß
+            bg_color: 0xFFFFFF
             bg_opa: COVER
             widgets:
               # Titel oben mittig
@@ -118,31 +116,72 @@ lvgl:
                   align: TOP_MID
                   y: 20
                   text_font: font_title
-                  text_color: 0x003366  # Dunkelblau
+                  text_color: 0x003366
                   text_align: CENTER
-              
-              # Einstellungs-Container (Platzhalter)
-              - obj:
-                  id: config_container
-                  width: 900
-                  height: 400
-                  align: CENTER
-                  y: 50
-                  bg_color: 0xF0F0F0
-                  bg_opa: COVER
-                  border_color: 0x003366
-                  border_width: 2
-                  radius: 10
-                  pad_all: 15
-                  widgets:
-                    - label:
-                        id: config_label
-                        text: "Konfigurationsoptionen folgen..."
-                        align: CENTER
-                        text_font: font_normal
-                        text_color: 0x000000  # Schwarz
-              
-              # Zurück Button
+
+              # Tab-Ansicht
+              - tabview:
+                  id: settings_tabs
+                  width: 1024
+                  height: 490
+                  align: TOP_MID
+                  y: 100
+                  tab_pos: TOP
+                  tabs:
+                    # Tab 1: Bildschirm
+                    - name: "Bildschirm"
+                      id: tab_bildschirm
+                      widgets:
+                        # Zeile: Helligkeit Label + Slider
+                        - obj:
+                            id: row_helligkeit
+                            width: 960
+                            height: 70
+                            align: TOP_MID
+                            y: 20
+                            bg_opa: TRANSP
+                            border_width: 0
+                            widgets:
+                              - label:
+                                  id: lbl_helligkeit
+                                  text: "Helligkeit"
+                                  align: LEFT_MID
+                                  x: 10
+                                  text_font: font_normal
+                                  text_color: 0x000000
+                              - slider:
+                                  id: slider_helligkeit
+                                  width: 650
+                                  height: 20
+                                  align: RIGHT_MID
+                                  x: -10
+                                  min_value: 0
+                                  max_value: 100
+                                  value: 80
+
+                    # Tab 2: System
+                    - name: "System"
+                      id: tab_system
+                      widgets:
+                        - label:
+                            id: lbl_system_placeholder
+                            text: "System-Einstellungen folgen..."
+                            align: CENTER
+                            text_font: font_normal
+                            text_color: 0x000000
+
+                    # Tab 3: Kuehler
+                    - name: "Kühler"
+                      id: tab_kuehler
+                      widgets:
+                        - label:
+                            id: lbl_kuehler_placeholder
+                            text: "Kuehler-Einstellungen folgen..."
+                            align: CENTER
+                            text_font: font_normal
+                            text_color: 0x000000
+
+              # Zurueck Button
               - button:
                   id: btn_back
                   width: 200
@@ -152,9 +191,9 @@ lvgl:
                   y: -20
                   widgets:
                     - label:
-                        text: "← Zurück"
+                        text: "Zurueck"
                         text_font: font_normal
-                        text_color: 0xFFFFFF  # Weiß
+                        text_color: 0xFFFFFF
                         align: CENTER
                   on_click:
                     - lvgl.page.show: page_main

@@ -37,10 +37,13 @@ Nicht generieren:
   - Position: Oben mittig
   - Schriftgröße: 60
   - Ausrichtung: Zentriert
-- **Funktionen** (werden später ergänzt):
-  - Konfigurations-Optionen
-  - System-Einstellungen
-  - Navigation zurück zur Hauptseite
+- **TabView** mit 3 Tabs (oben):
+  - **Tab "Bildschirm"**:
+    - Zeile: Label "Helligkeit" (linksbündig) + Slider (rechtsseitig, 0-100, Standard 80)
+    - Weitere Einstellungen folgen
+  - **Tab "System"**: Platzhalter
+  - **Tab "Kühler"**: Platzhalter
+- **Zurück-Button**: unten links → navigiert zu Hauptseite
 
 ## Technische Implementierung
 
