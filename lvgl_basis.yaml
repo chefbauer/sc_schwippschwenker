@@ -57,13 +57,13 @@ interval:
   - interval: 1s
     then:
       - lambda: |-
-          uint32_t t = id(slot_elapsed_ms)[0];
-          if (id(slot_status)[0] == 1)
-            t += millis() - id(slot_start_ms)[0];
-          uint32_t s = t / 1000;
-          char buf[6];
-          snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned)(s / 60), (unsigned)(s % 60));
-          lv_label_set_text(id(lbl_slot1_time), buf);
+          if (id(slot_status)[0] == 1) {
+            uint32_t t = id(slot_elapsed_ms)[0] + (millis() - id(slot_start_ms)[0]);
+            uint32_t s = t / 1000;
+            char buf[6];
+            snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned)(s / 60), (unsigned)(s % 60));
+            lv_label_set_text(id(lbl_slot1_time), buf);
+          }
 
 # LVGL Configuration
 lvgl:
@@ -186,11 +186,13 @@ lvgl:
                         if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
                           id(slot_start_ms)[i] = millis();
                           id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot1_symbol), LV_SYMBOL_PAUSE);
+                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8c");
+                          ESP_LOGI("timer", "Timer 1: Start");
                         } else {
                           id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
                           id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot1_symbol), LV_SYMBOL_PLAY);
+                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
+                          ESP_LOGI("timer", "Timer 1: Stop");
                         }
                   on_long_press:
                     - lambda: |-
@@ -200,7 +202,8 @@ lvgl:
                           id(slot_start_ms)[i] = 0;
                           id(slot_status)[i] = 0;
                           lv_label_set_text(id(lbl_slot1_time), "00:00");
-                          lv_label_set_text(id(lbl_slot1_symbol), LV_SYMBOL_PLAY);
+                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
+                          ESP_LOGI("timer", "Timer 1: Reset");
                         }
                   widgets:
                     - obj:
@@ -260,7 +263,7 @@ lvgl:
                               text: "\uF04B"
                               text_font: font_icons
                               align: RIGHT_MID
-                              x: -8
+                              x: -12
                               text_color: 0x880000
               - obj:
                   id: slot2_yellow
