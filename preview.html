@@ -4,16 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Display Drehwurm - Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Roboto', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #d0d0d0;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -22,233 +19,258 @@
         }
 
         .controls {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             gap: 10px;
         }
-
         .controls button {
-            padding: 10px 20px;
+            padding: 8px 20px;
             background: #003366;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
+            font-size: 15px;
         }
+        .controls button.active { background: #0055aa; }
 
-        .controls button:hover {
-            background: #004488;
-        }
-
-        .controls button.active {
-            background: #0055aa;
-            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.4);
-        }
-
+        /* Display Rahmen */
         .display-container {
             position: relative;
             width: 1024px;
             height: 600px;
             background: #fff;
-            border: 10px solid #666;
-            border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 8px solid #555;
+            border-radius: 8px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.35);
             overflow: hidden;
         }
 
+        /* Pages */
         .page {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: #FFFFFF;
             display: none;
-            flex-direction: column;
         }
+        .page.active { display: block; }
 
-        .page.active {
-            display: flex;
-        }
-
-        /* Page 1: Hauptseite */
-        .page-main .title {
+        /* ── PAGE 1: Hauptseite ── */
+        #pageMain .p-title {
             text-align: center;
             color: #003366;
             font-size: 60px;
-            font-weight: bold;
-            padding: 20px;
-            margin-top: 0;
-            text-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+            font-weight: 700;
+            padding: 18px 10px 10px;
         }
-
-        .page-main .status-container {
-            flex: 1;
-            margin: 50px 62px;
+        #pageMain .status-box {
+            position: absolute;
+            top: 110px; left: 62px;
+            width: 900px; height: 400px;
             background: #F0F0F0;
             border: 2px solid #003366;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 51, 102, 0.15);
         }
-
-        .page-main .status-label {
-            color: #000000;
+        #pageMain .status-box span {
             font-size: 28px;
+            color: #000;
         }
-
-        .page-main .nav-button {
+        #pageMain .btn-settings {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 20px; right: 20px;
+            width: 200px; height: 60px;
             background: #003366;
-            color: white;
+            color: #fff;
             border: none;
-            padding: 15px 30px;
             border-radius: 5px;
             font-size: 28px;
+            font-family: 'Roboto', Arial, sans-serif;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.3);
         }
+        #pageMain .btn-settings:hover { background: #004488; }
 
-        .page-main .nav-button:hover {
-            background: #004488;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.4);
-        }
-
-        /* Page 2: Einstellungen */
-        .page-settings .title {
+        /* ── PAGE 2: Einstellungen ── */
+        #pageSettings .p-title {
             text-align: center;
             color: #003366;
             font-size: 60px;
-            font-weight: bold;
-            padding: 20px;
-            margin-top: 0;
-            text-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+            font-weight: 700;
+            padding: 18px 10px 0;
         }
 
-        .page-settings .config-container {
+        /* TabView */
+        .tabview {
+            position: absolute;
+            top: 100px; left: 0;
+            width: 1024px; height: 490px;
+        }
+        .tab-bar {
+            display: flex;
+            height: 52px;
+            background: #E0E0E0;
+            border-bottom: 2px solid #bbb;
+        }
+        .tab-bar button {
             flex: 1;
-            margin: 50px 62px;
-            background: #F0F0F0;
-            border: 2px solid #003366;
-            border-radius: 10px;
+            background: #E0E0E0;
+            border: none;
+            border-right: 1px solid #bbb;
+            font-size: 30px;
+            font-family: 'Roboto', Arial, sans-serif;
+            color: #000;
+            cursor: pointer;
+        }
+        .tab-bar button:last-child { border-right: none; }
+        .tab-bar button.active {
+            background: #fff;
+            font-weight: 700;
+            border-bottom: 2px solid #fff;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+            width: 100%;
+            height: calc(100% - 52px);
+            background: #fff;
+            padding: 20px 32px;
+        }
+        .tab-content.active { display: block; }
+
+        /* Tab Bildschirm: Helligkeit-Zeile */
+        .row-helligkeit {
+            display: flex;
+            align-items: center;
+            height: 70px;
+            gap: 20px;
+        }
+        .row-helligkeit label {
+            font-size: 28px;
+            color: #000;
+            white-space: nowrap;
+            min-width: 180px;
+        }
+        .row-helligkeit input[type=range] {
+            flex: 1;
+            max-width: 650px;
+            height: 20px;
+            accent-color: #003366;
+        }
+
+        /* Tab Platzhalter */
+        .tab-placeholder {
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 51, 102, 0.15);
-        }
-
-        .page-settings .config-label {
-            color: #000000;
             font-size: 28px;
+            color: #000;
         }
 
-        .page-settings .back-button {
+        /* Zurück Button */
+        #pageSettings .btn-back {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: #003366;
-            color: white;
+            bottom: 20px; left: 20px;
+            width: 200px; height: 60px;
+            background: #444444;
+            color: #fff;
             border: none;
-            padding: 15px 30px;
             border-radius: 5px;
             font-size: 28px;
+            font-family: 'Roboto', Arial, sans-serif;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.3);
         }
+        #pageSettings .btn-back:hover { background: #555; }
 
-        .page-settings .back-button:hover {
-            background: #004488;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.4);
-        }
-
+        /* Specs */
         .info {
-            margin-top: 20px;
-            color: #003366;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .specs {
-            background: rgba(240, 240, 240, 0.9);
-            padding: 15px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #333;
+            background: #eee;
+            border: 1px solid #aaa;
             border-radius: 5px;
-            margin-top: 10px;
-            border: 1px solid #003366;
+            padding: 10px 20px;
         }
-
-        .specs p {
-            margin: 5px 0;
-            color: #003366;
-        }
+        .info p { margin: 3px 0; }
     </style>
 </head>
 <body>
-    <div class="controls">
-        <button id="btnMain" class="active" onclick="showPage('main')">Hauptseite</button>
-        <button id="btnSettings" onclick="showPage('settings')">Einstellungen</button>
+
+<div class="controls">
+    <button id="btnMain" class="active" onclick="showPage('main')">Hauptseite</button>
+    <button id="btnSettings" onclick="showPage('settings')">Einstellungen</button>
+</div>
+
+<div class="display-container">
+
+    <!-- PAGE 1: Hauptseite -->
+    <div class="page active" id="pageMain">
+        <div class="p-title">Supercooler Drehwurm Kühler</div>
+        <div class="status-box"><span>System bereit</span></div>
+        <button class="btn-settings" onclick="showPage('settings')">Einstellungen</button>
     </div>
 
-    <div class="display-container">
-        <!-- Page 1: Hauptseite -->
-        <div class="page page-main active" id="pageMain">
-            <h1 class="title">Supercooler Drehwurm Kühler</h1>
-            <div class="status-container">
-                <div class="status-label">System bereit</div>
+    <!-- PAGE 2: Einstellungen -->
+    <div class="page" id="pageSettings">
+        <div class="p-title">Einstellungen</div>
+
+        <div class="tabview">
+            <div class="tab-bar">
+                <button class="active" onclick="showTab('bildschirm', this)">Bildschirm</button>
+                <button onclick="showTab('system', this)">System</button>
+                <button onclick="showTab('kuehler', this)">Kühler</button>
             </div>
-            <button class="nav-button" onclick="showPage('settings')">⚙ Einstellungen</button>
-        </div>
 
-        <!-- Page 2: Einstellungen -->
-        <div class="page page-settings" id="pageSettings">
-            <h1 class="title">Einstellungen</h1>
-            <div class="config-container">
-                <div class="config-label">Konfigurationsoptionen folgen...</div>
+            <!-- Tab: Bildschirm -->
+            <div class="tab-content active" id="tab-bildschirm">
+                <div class="row-helligkeit">
+                    <label>Helligkeit</label>
+                    <input type="range" min="0" max="100" value="80">
+                </div>
             </div>
-            <button class="back-button" onclick="showPage('main')">← Zurück</button>
+
+            <!-- Tab: System -->
+            <div class="tab-content" id="tab-system">
+                <div class="tab-placeholder">System-Einstellungen folgen...</div>
+            </div>
+
+            <!-- Tab: Kühler -->
+            <div class="tab-content" id="tab-kuehler">
+                <div class="tab-placeholder">Kühler-Einstellungen folgen...</div>
+            </div>
         </div>
+
+        <button class="btn-back" onclick="showPage('main')">Zurück</button>
     </div>
 
-    <div class="info">
-        <div class="specs">
-            <p><strong>Display Spezifikationen</strong></p>
-            <p>Auflösung: 1024 x 600 Pixel</p>
-            <p>Plattform: ESPHome + LVGL</p>
-            <p>Farbtiefe: 16-bit (RGB565)</p>
-        </div>
-    </div>
+</div>
 
-    <script>
-        function showPage(pageName) {
-            // Alle Pages verstecken
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            // Alle Buttons zurücksetzen
-            document.querySelectorAll('.controls button').forEach(btn => {
-                btn.classList.remove('active');
-            });
+<div class="info">
+    <p><strong>Display:</strong> 1024 × 600 px &nbsp;|&nbsp; ESPHome + LVGL &nbsp;|&nbsp; 16-bit RGB565</p>
+</div>
 
-            // Gewählte Page anzeigen
-            if (pageName === 'main') {
-                document.getElementById('pageMain').classList.add('active');
-                document.getElementById('btnMain').classList.add('active');
-            } else if (pageName === 'settings') {
-                document.getElementById('pageSettings').classList.add('active');
-                document.getElementById('btnSettings').classList.add('active');
-            }
+<script>
+    function showPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+        if (name === 'main') {
+            document.getElementById('pageMain').classList.add('active');
+            document.getElementById('btnMain').classList.add('active');
+        } else {
+            document.getElementById('pageSettings').classList.add('active');
+            document.getElementById('btnSettings').classList.add('active');
         }
+    }
 
-        // Initial Page laden
-        showPage('main');
-    </script>
+    function showTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
 </body>
 </html>

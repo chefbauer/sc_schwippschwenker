@@ -37,13 +37,13 @@ Nicht generieren:
   - Position: Oben mittig
   - Schriftgröße: 60
   - Ausrichtung: Zentriert
-- **TabView** mit 3 Tabs (oben):
+- **TabView** mit 3 Tabs (oben), Schriftgröße 30, Hintergrund hellgrau (#E0E0E0):
   - **Tab "Bildschirm"**:
     - Zeile: Label "Helligkeit" (linksbündig) + Slider (rechtsseitig, 0-100, Standard 80)
     - Weitere Einstellungen folgen
   - **Tab "System"**: Platzhalter
   - **Tab "Kühler"**: Platzhalter
-- **Zurück-Button**: unten links → navigiert zu Hauptseite
+- **Zurück-Button**: unten links, dunkelgrau (#444444), Text "Zurück" → navigiert zu Hauptseite
 
 ## Technische Implementierung
 

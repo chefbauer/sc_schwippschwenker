@@ -22,6 +22,12 @@ font:
     bpp: 4
     glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~"
 
+  - file: "gfonts://Roboto@400"
+    id: font_tab
+    size: 30
+    bpp: 4
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~"
+
 # LVGL Configuration
 lvgl:
   log_level: INFO
@@ -126,6 +132,10 @@ lvgl:
                   height: 490
                   align: TOP_MID
                   y: 100
+                  tab_style:
+                    bg_color: 0xE0E0E0
+                    text_font: font_tab
+                    text_color: 0x000000
                   tabs:
                     # Tab 1: Bildschirm
                     - name: "Bildschirm"
@@ -180,7 +190,7 @@ lvgl:
                             text_font: font_normal
                             text_color: 0x000000
 
-              # Zurueck Button
+              # Zurück Button
               - button:
                   id: btn_back
                   width: 200
@@ -188,9 +198,10 @@ lvgl:
                   align: BOTTOM_LEFT
                   x: 20
                   y: -20
+                  bg_color: 0x444444
                   widgets:
                     - label:
-                        text: "Zurueck"
+                        text: "Zurück"
                         text_font: font_normal
                         text_color: 0xFFFFFF
                         align: CENTER
