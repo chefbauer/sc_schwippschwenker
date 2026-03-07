@@ -167,7 +167,7 @@ lvgl:
                         border_color: 0x2A3A4A
 
               # ---- Slot-Container links: Slot 1 (R), 2 (Y), 3 (G) ----
-              - obj:
+              - button:
                   id: slot1_red
                   width: 290
                   height: 120
@@ -178,6 +178,8 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
+                  shadow_width: 0
+                  outline_width: 0
                   pad_all: 0
                   scrollable: false
                   on_click:
