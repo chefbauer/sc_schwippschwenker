@@ -139,16 +139,52 @@ lvgl:
                   y: 110
                   radius: 16
                   bg_color: 0xFF0000
-                  bg_opa: COVER
+                  bg_opa: 128
                   border_width: 0
                   widgets:
-                    - label:
-                        text: "Slot 1"
+                    # Lasche: volle Farbe, 50px breit, Slot-Nummer zentriert
+                    - obj:
+                        id: slot1_tab
+                        width: 50
+                        height: 120
                         align: TOP_LEFT
-                        x: 8
-                        y: 5
-                        text_font: font_normal
-                        text_color: 0xFFFFFF
+                        x: 0
+                        y: 0
+                        bg_color: 0xFF0000
+                        bg_opa: COVER
+                        border_width: 0
+                        radius: 0
+                        widgets:
+                          - label:
+                              text: "1"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0xFFFFFF
+                    # Timer-Bereich rechts der Lasche
+                    - obj:
+                        id: slot1_timer_area
+                        width: 240
+                        height: 120
+                        align: TOP_LEFT
+                        x: 50
+                        y: 0
+                        bg_opa: TRANSP
+                        border_width: 0
+                        widgets:
+                          - label:
+                              id: lbl_slot1_timer_title
+                              text: "Timer:"
+                              align: TOP_MID
+                              y: 18
+                              text_font: font_normal
+                              text_color: 0x880000
+                          - label:
+                              id: lbl_slot1_time
+                              text: "00:00"
+                              align: BOTTOM_MID
+                              y: -18
+                              text_font: font_tab
+                              text_color: 0x880000
               - obj:
                   id: slot2_yellow
                   width: 290
