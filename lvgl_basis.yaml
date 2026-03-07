@@ -139,7 +139,7 @@ lvgl:
                   y: 110
                   radius: 16
                   bg_color: 0xFF0000
-                  bg_opa: 128
+                  bg_opa: 50%
                   border_width: 0
                   widgets:
                     # Lasche: volle Farbe, 50px breit, Slot-Nummer zentriert
