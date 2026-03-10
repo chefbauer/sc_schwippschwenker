@@ -1,0 +1,245 @@
+# ================================
+# Sensor Phalanx – Hardware Konfiguration
+# MLX90632 · VL53L1X · SHT4x · BMP581 · VEML7700
+#
+# Alle Sensoren teilen sich den gemeinsamen I²C-Bus
+# der Hauptkonfiguration (main_config): "i2c_bus"
+# ================================
+
+i2c_device:
+  - id: i2c_mlx90632
+    address: 0x3A
+    i2c_id: i2c_bus
+
+sensor:
+  # ── VL53L1X – Time-of-Flight Distanzsensor ────────────────
+  - platform: vl53l1x
+    id: distance_sensor
+    i2c_id: i2c_bus
+    address: 0x29
+    update_interval: 500ms
+    distance_mode: short
+    measurement_timing_budget: 400ms
+    unit_of_measurement: "mm"
+    accuracy_decimals: 0
+    filters:
+      - lambda: |-
+          return x * 1000 - 26;             # Offset -26mm, Meter → Millimeter
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: distance_value_label
+            text:
+              format: "%.0fmm"
+              args: ['x']
+
+  # ── SHT4x – Temperatur und Luftfeuchtigkeit ───────────────
+  - platform: sht4x
+    i2c_id: i2c_bus
+    update_interval: 1s
+    temperature:
+      name: "Temperature"
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: temp_value_label
+              text:
+                format: "%.2f°C"
+                args: ['x']
+    humidity:
+      name: "Relative Humidity"
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: hum_value_label
+              text:
+                format: "%.1f%% rel."
+                args: ['x']
+
+  # ── BMP581 – Barometrischer Druck und Temperatur ──────────
+  - platform: bmp581_i2c
+    i2c_id: i2c_bus
+    update_interval: 1s
+    temperature:
+      name: "Indoor Temperature"
+      id: bmp_temperature
+    pressure:
+      name: "Indoor Pressure"
+      id: bmp_pressure
+      accuracy_decimals: 1
+      filters:
+        - lambda: return x/100;
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: pressure_value_label
+              text:
+                format: "%.1fhPa"
+                args: ['x']
+
+  # ── Berechnete Höhe aus BMP581 (hypsometrische Formel) ────
+  - platform: template
+    name: "Indoor Altitude"
+    id: indoor_altitude
+    unit_of_measurement: "m"
+    icon: "mdi:image-filter-hdr"
+    device_class: distance
+    accuracy_decimals: 2
+    state_class: measurement
+    update_interval: 1s
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: height_value_label
+            text:
+              format: "%.2fm"
+              args: ['x']
+    lambda: !lambda |-
+      static const float P0         = 1013.25f;   // Standard-Referenzdruck [hPa]
+      static const float lapse_rate = 0.0065f;    // K/m
+      static const float exp_val    = 0.19023f;   // ≈ 1/5.255
+
+      float p_hPa  = id(bmp_pressure).state;
+      float temp_c = id(bmp_temperature).state;
+
+      if (isnan(p_hPa) || p_hPa <= 300.0f || isnan(temp_c)) {
+        return NAN;
+      }
+
+      float temp_k = temp_c + 273.15f;
+      float ratio  = P0 / p_hPa;
+      float altitude = (temp_k / lapse_rate) * (powf(ratio, exp_val) - 1.0f);
+
+      if (altitude < -200.0f || altitude > 4000.0f) {
+        return NAN;
+      }
+      return altitude;
+
+  # ── VEML7700 – Umgebungslichtsensor ───────────────────────
+  - platform: veml7700
+    id: sensor_veml7700
+    i2c_id: i2c_bus
+    address: 0x10
+    update_interval: 2s
+    ambient_light:
+      name: "Ambient light"
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: light_value_label
+              text:
+                format: "%.2flx"
+                args: ['x']
+
+  # ── MLX90632 – IR-Objekttemperatur (berechnete Ableitung) ─
+  - platform: template
+    id: sensor_Temp_OBJECT
+    name: sensor_Temp_OBJECT
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    update_interval: 1s
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: mlx_value_label
+            text:
+              format: "IR: %.1f°C"
+              args: ['x']
+    lambda: |-
+      double emissivity = 0.90;
+
+      uint8_t buf[2];
+
+      static bool coeffs_read = false;
+      static int32_t P_R_raw = 0, P_G_raw = 0, P_T_raw = 0, P_O_raw = 0;
+      static int32_t Ea_raw = 0, Eb_raw = 0;
+      static int32_t Fa_raw = 0, Fb_raw = 0, Ga_raw = 0;
+      static int16_t EE_Gb = 0, EE_Ha = 0, EE_Hb = 0, EE_Ka = 0;
+
+      static double P_R = 0.0, P_G = 0.0, P_T = 0.0, P_O = 0.0;
+      static double Ea = 0.0, Eb = 0.0;
+      static double Fa = 0.0, Fb = 0.0, Ga = 0.0;
+      static double Gb = 0.0, Ka = 0.0, Ha = 0.0, Hb = 0.0;
+
+      if (!coeffs_read) {
+        ESP_LOGD("mlx", "Kalibrierkoeffizienten werden zum ersten Mal gelesen...");
+
+        auto read32 = [&](uint16_t lsw_addr, int32_t& raw) {
+          int16_t lsw = 0, msw = 0;
+          if (id(i2c_mlx90632).read_register16(lsw_addr,     buf, 2) == i2c::ERROR_OK)
+            lsw = (int16_t)((buf[0] << 8) | buf[1]);
+          if (id(i2c_mlx90632).read_register16(lsw_addr + 1, buf, 2) == i2c::ERROR_OK)
+            msw = (int16_t)((buf[0] << 8) | buf[1]);
+          raw = ((int32_t)msw << 16) | (int32_t)(lsw & 0xFFFF);
+        };
+
+        read32(0x240C, P_R_raw); P_R = (double)P_R_raw * pow(2, -8);
+        read32(0x240E, P_G_raw); P_G = (double)P_G_raw * pow(2, -20);
+        read32(0x2410, P_T_raw); P_T = (double)P_T_raw * pow(2, -44);
+        read32(0x2412, P_O_raw); P_O = (double)P_O_raw * pow(2, -8);
+
+        read32(0x2424, Ea_raw); Ea = (double)Ea_raw * pow(2, -16);
+        read32(0x2426, Eb_raw); Eb = (double)Eb_raw * pow(2, -8);
+        read32(0x2428, Fa_raw); Fa = (double)Fa_raw * pow(2, -46);
+        read32(0x242A, Fb_raw); Fb = (double)Fb_raw * pow(2, -36);
+        read32(0x242C, Ga_raw); Ga = (double)Ga_raw * pow(2, -36);
+
+        if (id(i2c_mlx90632).read_register16(0x242E, buf, 2) == i2c::ERROR_OK) EE_Gb = (int16_t)((buf[0] << 8) | buf[1]);
+        if (id(i2c_mlx90632).read_register16(0x242F, buf, 2) == i2c::ERROR_OK) EE_Ka = (int16_t)((buf[0] << 8) | buf[1]);
+        if (id(i2c_mlx90632).read_register16(0x2481, buf, 2) == i2c::ERROR_OK) EE_Ha = (int16_t)((buf[0] << 8) | buf[1]);
+        if (id(i2c_mlx90632).read_register16(0x2482, buf, 2) == i2c::ERROR_OK) EE_Hb = (int16_t)((buf[0] << 8) | buf[1]);
+
+        Gb = (double)EE_Gb * pow(2, -10);
+        Ka = (double)EE_Ka * pow(2, -10);
+        Ha = (double)EE_Ha * pow(2, -14);
+        Hb = (double)EE_Hb * pow(2, -10);
+
+        coeffs_read = true;
+      }
+
+      int16_t ram52 = 0, ram53 = 0, ram54 = 0, ram55 = 0;
+      int16_t ram56 = 0, ram57 = 0, ram58 = 0, ram59 = 0;
+
+      auto read_ram = [&](uint16_t addr, int16_t& val) {
+        if (id(i2c_mlx90632).read_register16(addr, buf, 2) == i2c::ERROR_OK)
+          val = (int16_t)((buf[0] << 8) | buf[1]);
+      };
+
+      read_ram(0x4033, ram52);
+      read_ram(0x4034, ram53);
+      read_ram(0x4035, ram54);
+      read_ram(0x4036, ram55);
+      read_ram(0x4037, ram56);
+      read_ram(0x4038, ram57);
+      read_ram(0x4039, ram58);
+      read_ram(0x403A, ram59);
+
+      int16_t ram_ambient = ram54;
+      int16_t ram_ref     = ram57;
+
+      double VRTA = (double)ram_ref + Gb * ((double)ram_ambient / 12.0);
+      double AMB  = ((double)ram_ambient / 12.0) / VRTA * (double)pow(2, 19);
+
+      double S    = ((double)ram52 - (double)ram53 - (double)ram55 + (double)ram56) / 2.0
+                    + (double)ram58 + (double)ram59;
+      double VRTO = (double)ram_ref + Ka * ((double)ram_ambient / 12.0);
+      double STO  = ((S / 12.0) / VRTO) * (double)pow(2, 19);
+
+      double Bsub        = AMB - P_R;
+      double ambient_temp = Bsub / P_G + P_T * (Bsub * Bsub) + P_O;
+
+      double TADUT = (AMB - Eb) / Ea + 25.0;
+      double TAK   = TADUT + 273.15;
+      double TAK4  = pow(TAK, 4);
+
+      double TODUT = ambient_temp;
+      double To    = 0.0;
+      for (int iter = 0; iter < 5; iter++) {
+        double denom = emissivity * Fa / 2.0 * Ha
+                       * (1.0 + Ga * (TODUT - 25.0) + Fb * (TADUT - 25.0));
+        To    = pow((STO / denom) + TAK4, 0.25) - 273.15 - Hb;
+        TODUT = To;
+      }
+
+      ESP_LOGD("mlx", "Object: %.2f °C | Ambient: %.2f °C", To, ambient_temp);
+      return To;
