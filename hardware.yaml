@@ -8,7 +8,7 @@ output:
     channel: A
     vref: vdd
     power_down: normal
-    min_power: 0.3
+    min_power: 0.2
     max_power: 1.0
 
   # PWM Lüftersteuerung (Kompressor-Lüfter)
