@@ -1,7 +1,3 @@
-esphome:
-  includes:
-    - amg8833_helper.h
-
 mcp4728:
   - id: dac_output
 
