@@ -30,11 +30,6 @@ output:
     id: output_kompressor_relais
     pin: ${pin_pwm4}
 
-i2c:
-  - id: i2c_bus
-    sda: ${pin_i2c_sda}
-    scl: ${pin_i2c_scl}
-    scan: true
 
 i2c_device:
   - id: i2c_amg8833
