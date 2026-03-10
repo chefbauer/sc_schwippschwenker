@@ -29,7 +29,7 @@ sensor:
     accuracy_decimals: 0
     filters:
       - lambda: |-
-          return x * 1000 - 26;             # Offset -26mm, Meter → Millimeter
+          return x * 1000 - 26;             // Offset -26mm, Meter -> Millimeter
     on_value:
       then:
         - lvgl.label.update:
