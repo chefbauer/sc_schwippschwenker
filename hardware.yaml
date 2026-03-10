@@ -10,6 +10,7 @@ output:
     power_down: normal
     min_power: 0.2
     max_power: 1.0
+    zero_means_zero: true
 
   # PWM Lüftersteuerung (Kompressor-Lüfter)
   - platform: ledc

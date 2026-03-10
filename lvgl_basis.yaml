@@ -20,7 +20,7 @@ font:
     id: font_normal
     size: 28
     bpp: 4
-    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~°"
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~°·–"
 
   - file: "gfonts://Roboto@400"
     id: font_tab
@@ -32,7 +32,7 @@ font:
     id: font_small
     size: 18
     bpp: 4
-    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~°"
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~°·–"
 
   # Symbol-Font – Font Awesome Solid (Play/Pause)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"
@@ -899,12 +899,55 @@ lvgl:
                     - name: "System"
                       id: tab_system
                       widgets:
-                        - label:
-                            id: lbl_system_placeholder
-                            text: "System-Einstellungen folgen..."
-                            align: CENTER
-                            text_font: font_normal
-                            text_color: 0x000000
+                        # Overlays
+                        - obj:
+                            id: row_overlays
+                            width: 960
+                            height: 70
+                            align: TOP_MID
+                            y: 20
+                            bg_opa: TRANSP
+                            border_width: 0
+                            widgets:
+                              - label:
+                                  id: lbl_overlays
+                                  text: "Overlays:"
+                                  align: LEFT_MID
+                                  x: 10
+                                  text_font: font_normal
+                                  text_color: 0x000000
+                              - button:
+                                  id: btn_amg_live
+                                  width: 220
+                                  height: 60
+                                  align: LEFT_MID
+                                  x: 200
+                                  bg_color: 0x334466
+                                  widgets:
+                                    - label:
+                                        text: "AMG8833 Live"
+                                        align: CENTER
+                                        text_font: font_normal
+                                        text_color: 0xFFFFFF
+                                  on_click:
+                                    - lambda: |-
+                                        amg_create_grid(id(amg_grid_container), 62);
+                                    - lvgl.widget.show: overlay_amg8833
+                              - button:
+                                  id: btn_sensorphalanx_live
+                                  width: 220
+                                  height: 60
+                                  align: LEFT_MID
+                                  x: 440
+                                  bg_color: 0x336644
+                                  widgets:
+                                    - label:
+                                        text: "Sensor-Phalanx"
+                                        align: CENTER
+                                        text_font: font_normal
+                                        text_color: 0xFFFFFF
+                                  on_click:
+                                    - lvgl.widget.show: overlay_sensorphalanx
 
                     # Tab 2: Bildschirm
                     - name: "Bildschirm"
@@ -1186,55 +1229,6 @@ lvgl:
                                     - output.set_level:
                                         id: output_pumpe_pwm1
                                         level: !lambda "return x / 100.0;"
-                        # Overlays
-                        - obj:
-                            id: row_overlays
-                            width: 960
-                            height: 70
-                            align: TOP_MID
-                            y: 200
-                            bg_opa: TRANSP
-                            border_width: 0
-                            widgets:
-                              - label:
-                                  id: lbl_overlays
-                                  text: "Overlays:"
-                                  align: LEFT_MID
-                                  x: 10
-                                  text_font: font_normal
-                                  text_color: 0x000000
-                              - button:
-                                  id: btn_amg_live
-                                  width: 220
-                                  height: 60
-                                  align: LEFT_MID
-                                  x: 200
-                                  bg_color: 0x334466
-                                  widgets:
-                                    - label:
-                                        text: "AMG8833 Live"
-                                        align: CENTER
-                                        text_font: font_normal
-                                        text_color: 0xFFFFFF
-                                  on_click:
-                                    - lambda: |-
-                                        amg_create_grid(id(amg_grid_container), 62);
-                                    - lvgl.widget.show: overlay_amg8833
-                              - button:
-                                  id: btn_sensorphalanx_live
-                                  width: 220
-                                  height: 60
-                                  align: LEFT_MID
-                                  x: 440
-                                  bg_color: 0x336644
-                                  widgets:
-                                    - label:
-                                        text: "Sensor-Phalanx"
-                                        align: CENTER
-                                        text_font: font_normal
-                                        text_color: 0xFFFFFF
-                                  on_click:
-                                    - lvgl.widget.show: overlay_sensorphalanx
 
               # Zurück Button
               - button:
