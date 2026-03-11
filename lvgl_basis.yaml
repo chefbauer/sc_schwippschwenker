@@ -41,6 +41,13 @@ font:
     bpp: 4
     glyphs: "0123456789:- ,.DFMSaceghimnorstw"
 
+  # Temperatur-Font (Statusleiste, gleiche Größe wie Schneeflocken-Symbol)
+  - file: "gfonts://Roboto@400"
+    id: font_temp
+    size: 40
+    bpp: 4
+    glyphs: "0123456789.-°C "
+
   # Symbol-Font – Font Awesome Solid (Play/Pause/Schneeflocke/Einstellungen)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"
     id: font_icons
@@ -870,13 +877,16 @@ lvgl:
                     # Uhrzeit-Block links (zweizeilig, zentriert im Block)
                     - obj:
                         id: clock_block
-                        width: 225
+                        width: size_content
                         height: 58
                         align: LEFT_MID
                         x: 8
                         bg_opa: TRANSP
                         border_width: 0
-                        pad_all: 0
+                        pad_top: 0
+                        pad_bottom: 0
+                        pad_left: 5
+                        pad_right: 5
                         scrollable: false
                         clickable: false
                         widgets:
@@ -894,6 +904,14 @@ lvgl:
                               align: BOTTOM_MID
                               y: -4
                               text_color: 0x555555
+                    # Temperatur (SHT4x) rechts neben Uhrzeit-Block
+                    - label:
+                        id: lbl_statusbar_temp
+                        text: "--.-°C"
+                        text_font: font_temp
+                        align: LEFT_MID
+                        x: 230
+                        text_color: 0x999999
                     # Schneeflocken-Icon mittig
                     - label:
                         id: lbl_kompressor_icon
