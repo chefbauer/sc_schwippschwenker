@@ -34,7 +34,14 @@ font:
     bpp: 4
     glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyzäöüÄÖÜß{|}~°·–"
 
-  # Symbol-Font – Font Awesome Solid (Play/Pause)
+  # Uhrzeit-Font (Statusleiste hh:mm:ss)
+  - file: "gfonts://Roboto@400"
+    id: font_clock
+    size: 22
+    bpp: 4
+    glyphs: "0123456789:"
+
+  # Symbol-Font – Font Awesome Solid (Play/Pause/Schneeflocke/Einstellungen)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"
     id: font_icons
     size: 40
@@ -43,6 +50,7 @@ font:
       - "\uF04B"
       - "\uF04C"
       - "\uF2DC"  # Schneeflocke
+      - "\uF013"  # Zahnrad (Einstellungen)
 
   # Dot-Matrix Font für Timer-Anzeige
   - file: "fonts/5x7-dot-matrix.ttf"
@@ -113,6 +121,13 @@ interval:
           // AMG8833 Overlay aktualisieren wenn sichtbar
           if (!lv_obj_has_flag(id(overlay_amg8833), LV_OBJ_FLAG_HIDDEN)) {
             amg_update_cells(id(amg_pixel_temps).data());
+          }
+          // Uhrzeit in Statusleiste aktualisieren
+          auto t = id(rtc_ds3231).now();
+          if (t.is_valid()) {
+            char tbuf[9];
+            snprintf(tbuf, sizeof(tbuf), "%02d:%02d:%02d", t.hour, t.minute, t.second);
+            lv_label_set_text(id(lbl_status_clock), tbuf);
           }
 
 # LVGL Configuration
@@ -834,11 +849,11 @@ lvgl:
                               x: -17
                               text_color: 0x880044
 
-              # Statusleiste unten mittig
+              # Statusleiste unten
               - obj:
                   id: status_bar
                   width: 1024
-                  height: 80
+                  height: 60
                   align: BOTTOM_MID
                   y: 0
                   bg_color: 0xF0F0F0
@@ -847,29 +862,38 @@ lvgl:
                   radius: 0
                   scrollable: false
                   widgets:
+                    # Uhrzeit links
+                    - label:
+                        id: lbl_status_clock
+                        text: "--:--:--"
+                        text_font: font_clock
+                        align: LEFT_MID
+                        x: 16
+                        text_color: 0x333333
+                    # Schneeflocken-Icon mittig
                     - label:
                         id: lbl_kompressor_icon
                         text: "\uF2DC"
                         text_font: font_icons
                         align: CENTER
                         text_color: 0xCCCCCC  # Grau = Kompressor aus
-
-              # Navigation Button zu Einstellungen
-              - button:
-                  id: btn_to_settings
-                  width: 200
-                  height: 60
-                  align: BOTTOM_RIGHT
-                  x: -20
-                  y: -20
-                  widgets:
-                    - label:
-                        text: "Einstellungen"
-                        text_font: font_normal
-                        text_color: 0xFFFFFF  # Weiß
-                        align: CENTER
-                  on_click:
-                    - lvgl.page.show: page_settings
+                    # Einstellungen-Button rechts (Zahnrad-Icon)
+                    - button:
+                        id: btn_to_settings
+                        width: 60
+                        height: 54
+                        align: RIGHT_MID
+                        x: -4
+                        bg_color: 0x444444
+                        radius: 8
+                        widgets:
+                          - label:
+                              text: "\uF013"
+                              text_font: font_icons
+                              text_color: 0xFFFFFF
+                              align: CENTER
+                        on_click:
+                          - lvgl.page.show: page_settings
 
     # ================================
     # PAGE 2: Einstellungen

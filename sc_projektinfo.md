@@ -34,10 +34,12 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | Parameter | Wert |
 |---|---|
 | Plattform | ESP32-P4 |
-| Display | 7" integriert, 1024 × 600 px |
+| Display-Modul | **Guition ESP32-P4 JC1060P470** |
+| Display | 4,7" integriert, 1024 × 600 px |
 | PSRAM | 32 MB |
 | LVGL Version | 8.x (kein LVGL 9!) |
 | Betrieb | Standalone (kein Home Assistant nötig) |
+| RTC | DS3231 (I²C, Adresse 0x68), onboard |
 
 ---
 
@@ -49,8 +51,9 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | `font_normal` | Roboto 400 (gfonts) | 28 | Labels, Buttons, allgemein |
 | `font_tab` | Roboto 400 (gfonts) | 30 | Tab-Beschriftungen |
 | `font_small` | Roboto 400 (gfonts) | 18 | Beschriftungen, Overlay-Hilfstexte |
-| `font_icons` | Font Awesome Solid 6.5.0 (CDN) | 40 | Play/Pause/Schneeflocke (U+F04B, U+F04C, U+F2DC) |
+| `font_icons` | Font Awesome Solid 6.5.0 (CDN) | 40 | Play/Pause/Schneeflocke/Zahnrad (U+F04B, U+F04C, U+F2DC, U+F013) |
 | `font_timer` | 5x7-dot-matrix.ttf (lokal) | 35 | Timer-Anzeige MM:SS |
+| `font_clock` | Roboto 400 (gfonts) | 22 | Uhrzeit HH:MM:SS in Statusleiste |
 
 **Sonderzeichen in Glyphs** (alle vier Text-Fonts): `äöüÄÖÜß°·–`  
 Icon-Bytes in Lambdas: Play = `\xef\x81\x8b`, Pause = `\xef\x81\x8c`, Schneeflocke = `\xef\x8b\x9c`
@@ -127,12 +130,14 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 | 6 M | `#880044` |
 
 ### Statusleiste
-- `status_bar` unten, 1024×80 px, `#F0F0F0`
-- Schneeflocken-Icon (`lbl_kompressor_icon`): grau = aus, blau = kühlt aktiv
-- Farbe wird via `climate.on_state` Lambda gesetzt
+- `status_bar` unten, 1024×60 px (60 px Höhe), `#F0F0F0`
+- **Links:** Uhrzeitanzeige `lbl_status_clock` (`font_clock`, `#333333`) — zeigt `HH:MM:SS` aus RTC/SNTP
+- **Mitte:** Schneeflocken-Icon (`lbl_kompressor_icon`): grau = aus, blau = kühlt aktiv
+- **Rechts:** Button `btn_to_settings` (60×54 px, dunkelgrau `#444444`) mit Zahnrad-Icon (`\uF013`) → `lvgl.page.show: page_settings`
+- Farbe des Schneeflocken-Icons wird via `climate.on_state` Lambda gesetzt
 
 ### Navigation
-- Button "Einstellungen" unten rechts → `lvgl.page.show: page_settings`
+- Settings-Button ist Teil der Statusleiste (rechts)
 
 ---
 
