@@ -39,7 +39,7 @@ font:
     id: font_clock
     size: 22
     bpp: 4
-    glyphs: "0123456789:-"
+    glyphs: "0123456789:- ,.DFMSaceghimnorstwD"
 
   # Symbol-Font – Font Awesome Solid (Play/Pause/Schneeflocke/Einstellungen)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"
@@ -128,6 +128,10 @@ interval:
             char tbuf[9];
             snprintf(tbuf, sizeof(tbuf), "%02d:%02d:%02d", t.hour, t.minute, t.second);
             lv_label_set_text(id(lbl_status_clock), tbuf);
+            static const char* wdays[] = {"Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"};
+            char dbuf[24];
+            snprintf(dbuf, sizeof(dbuf), "%s, %02d.%02d.", wdays[t.day_of_week], t.day_of_month, t.month);
+            lv_label_set_text(id(lbl_status_date), dbuf);
           }
 
 # LVGL Configuration
@@ -863,14 +867,33 @@ lvgl:
                   radius: 0
                   scrollable: false
                   widgets:
-                    # Uhrzeit links
-                    - label:
-                        id: lbl_status_clock
-                        text: "--:--:--"
-                        text_font: font_clock
+                    # Uhrzeit-Block links (zweizeilig, zentriert im Block)
+                    - obj:
+                        id: clock_block
+                        width: 225
+                        height: 58
                         align: LEFT_MID
-                        x: 16
-                        text_color: 0x333333
+                        x: 8
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        scrollable: false
+                        clickable: false
+                        widgets:
+                          - label:
+                              id: lbl_status_clock
+                              text: "--:--:--"
+                              text_font: font_clock
+                              align: TOP_MID
+                              y: 4
+                              text_color: 0x333333
+                          - label:
+                              id: lbl_status_date
+                              text: "---, --.--." 
+                              text_font: font_clock
+                              align: BOTTOM_MID
+                              y: -4
+                              text_color: 0x555555
                     # Schneeflocken-Icon mittig
                     - label:
                         id: lbl_kompressor_icon
