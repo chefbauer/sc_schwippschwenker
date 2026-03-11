@@ -66,6 +66,15 @@ globals:
     type: std::array<int, 6>
     restore_value: false
     initial_value: '{0, 0, 0, 0, 0, 0}'
+  # Helligkeits-Automodus (VEML7700)
+  - id: brightness_auto_mode
+    type: bool
+    restore_value: false
+    initial_value: 'false'
+  - id: brightness_auto_updating
+    type: bool
+    restore_value: false
+    initial_value: 'false'
 interval:
   - interval: 500ms
     then:
@@ -983,30 +992,61 @@ lvgl:
                                     - light.control:
                                         id: light_screen_background
                                         brightness: !lambda "return x / 100.0;"
+                                    - lambda: |-
+                                        // Manuelle Bedienung: Auto-Modus deaktivieren
+                                        if (!id(brightness_auto_updating)) {
+                                          id(brightness_auto_mode) = false;
+                                          lv_obj_clear_state(id(sw_brightness_auto), LV_STATE_CHECKED);
+                                        }
 
-                        # Farbtest-Quadrate (150 x 150)
+                        # Zeile: Auto-Helligkeit (VEML7700)
+                        - obj:
+                            id: row_auto_brightness
+                            width: 960
+                            height: 60
+                            align: TOP_MID
+                            y: 100
+                            bg_opa: TRANSP
+                            border_width: 0
+                            widgets:
+                              - label:
+                                  id: lbl_auto_brightness
+                                  text: "Auto (VEML7700)"
+                                  align: LEFT_MID
+                                  x: 10
+                                  text_font: font_normal
+                                  text_color: 0x444444
+                              - switch:
+                                  id: sw_brightness_auto
+                                  align: RIGHT_MID
+                                  x: -10
+                                  on_value:
+                                    - lambda: |-
+                                        id(brightness_auto_mode) = x;
+
+                        # Farbtest-Quadrate (100 x 100)
                         - obj:
                             id: row_farben
                             width: 960
-                            height: 170
+                            height: 120
                             align: TOP_MID
-                            y: 110
+                            y: 175
                             bg_opa: TRANSP
                             border_width: 0
                             widgets:
                               - obj:
                                   id: sq_red
-                                  width: 150
-                                  height: 150
+                                  width: 100
+                                  height: 100
                                   align: CENTER
-                                  x: -180
+                                  x: -120
                                   bg_color: 0xFF0000
                                   bg_opa: COVER
                                   border_width: 0
                               - obj:
                                   id: sq_green
-                                  width: 150
-                                  height: 150
+                                  width: 100
+                                  height: 100
                                   align: CENTER
                                   x: 0
                                   bg_color: 0x00FF00
@@ -1014,10 +1054,10 @@ lvgl:
                                   border_width: 0
                               - obj:
                                   id: sq_blue
-                                  width: 150
-                                  height: 150
+                                  width: 100
+                                  height: 100
                                   align: CENTER
-                                  x: 180
+                                  x: 120
                                   bg_color: 0x0000FF
                                   bg_opa: COVER
                                   border_width: 0

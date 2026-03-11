@@ -12,11 +12,15 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 
 ---
 
-## Display / ESPHome
+## Projekt-Typ
 
-ESPHome LVGL Display-Konfiguration für den "Supercooler Drehwurm Kühler".
+**ESPHome Standalone-Projekt** für den "Supercooler Drehwurm Kühler".
 
-`lvgl_basis.yaml` wird in ESPHome via `packages:` importiert.  
+- Läuft vollständig eigenständig auf einem **ESP32-P4** mit **integriertem 7" Display**
+- Kein Home Assistant erforderlich – alle Logik (Timer, Kühler-Steuerung, UI) läuft direkt auf dem Gerät
+- Konfiguration in modulare YAML-Pakete aufgeteilt (via `packages:`)
+
+`lvgl_basis.yaml` enthält Fonts, Globals, Interval, LVGL-Pages.  
 `lvgl_overlay.yaml` enthält alle Top-Layer Overlays.  
 `hardware.yaml` enthält Sensoren, Outputs, MCP4728, Climate, AMG8833.  
 `sensorphalanx.yaml` enthält die externe Sensor-Gruppe (MLX90632, VL53L1X, SHT4x, BMP581, VEML7700).  
@@ -30,9 +34,10 @@ ESPHome LVGL Display-Konfiguration für den "Supercooler Drehwurm Kühler".
 | Parameter | Wert |
 |---|---|
 | Plattform | ESP32-P4 |
+| Display | 7" integriert, 1024 × 600 px |
 | PSRAM | 32 MB |
-| Display | 1024 × 600 px |
 | LVGL Version | 8.x (kein LVGL 9!) |
+| Betrieb | Standalone (kein Home Assistant nötig) |
 
 ---
 
@@ -152,6 +157,10 @@ Tab-Reihenfolge: **System · Bildschirm · Kühler · Test**
 **Tab "Bildschirm":**
 - Zeile: Label "Helligkeit" + Slider (`slider_helligkeit`, 0–100, Standard 80)
   - `on_value` → `light.control` auf `light_screen_background` mit `brightness: x/100.0`
+  - Bei manueller Bedienung: Auto-Modus deaktivieren + Switch zurücksetzen
+- Zeile: Switch `sw_brightness_auto` + Label "Auto (VEML7700)"
+  - Ein: VEML7700-Lux steuert Helligkeit automatisch (Formel: 0 lux→ 50%, 100 lux → 100%)
+  - Aus: manuelle Steuerung
 - Farbtest-Quadrate (150×150 px): Rot / Grün / Blau nebeneinander zentriert
 
 ---
@@ -410,6 +419,10 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 **Tab "Bildschirm":**
 - Zeile: Label "Helligkeit" + Slider (`slider_helligkeit`, 0–100, Standard 80)
   - `on_value` → `light.control` auf `light_screen_background` mit `brightness: x/100.0`
+  - Bei manueller Bedienung: Auto-Modus deaktivieren + Switch zurücksetzen
+- Zeile: Switch `sw_brightness_auto` + Label "Auto (VEML7700)"
+  - Ein: VEML7700-Lux steuert Helligkeit automatisch (Formel: 0 lux → 50%, 100 lux → 100%)
+  - Aus: manuelle Steuerung
 - Farbtest-Quadrate (150×150 px): Rot / Grün / Blau nebeneinander zentriert
 
 **Tab "System":** Platzhalter
