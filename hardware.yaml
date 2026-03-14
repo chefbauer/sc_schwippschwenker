@@ -228,3 +228,10 @@ climate:
           } else {
             lv_obj_clear_state(id(sw_kuehlung), LV_STATE_CHECKED);
           }
+          // Lüfter-Prozentwert aktualisieren
+          char buf[12];
+          float perc = (id(climate_thermostat).action == CLIMATE_ACTION_COOLING)
+            ? ${fan_kompressor_max_perc}
+            : ${fan_kompressor_min_perc};
+          snprintf(buf, sizeof(buf), "%.0f %%", perc);
+          lv_label_set_text(id(lbl_luefter_wert), buf);
