@@ -14,7 +14,7 @@ substitutions:
   pin_led_v2: GPIO46
   pin_1w: GPIO45
   
-  fan_kompressor_min_perc: 20
+  fan_kompressor_min_perc: 30
   fan_kompressor_max_perc: 90
   
   pumpe_becken_max_perc: 80
