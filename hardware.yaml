@@ -191,15 +191,15 @@ climate:
       - output.turn_on: output_kompressor_relais
       - output.set_level:
           id: output_luefter_kompressor_pwm
-          level: !lambda "return ${fan_kompressor_max_perc} / 100.0;"
+          level: "${fan_kompressor_max_perc}%"
       - output.set_level:
           id: output_pumpe_dacB
-          level: !lambda "return ${pumpe_becken_max_perc} / 100.0;"
+          level: "${pumpe_becken_max_perc}%"
     idle_action:
       - output.turn_off: output_kompressor_relais
       - output.set_level:
           id: output_luefter_kompressor_pwm
-          level: !lambda "return ${fan_kompressor_min_perc} / 100.0;"
+          level: "${fan_kompressor_min_perc}%"
       - output.turn_off: output_pumpe_dacB
     default_preset: Eco
     preset:
