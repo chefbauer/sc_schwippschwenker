@@ -39,7 +39,7 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | PSRAM | 32 MB |
 | LVGL Version | 8.x (kein LVGL 9!) |
 | Betrieb | Standalone (kein Home Assistant nötig) |
-| RTC | DS3231 (I²C, Adresse 0x68), onboard |
+| Zeit-Quelle | SNTP (NTP) — RTC wird später hinzugefügt |
 
 ---
 
@@ -136,7 +136,7 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 
 ### Statusleiste
 - `status_bar` unten, 1024×60 px (60 px Höhe), `#F0F0F0`
-- **Links:** Uhrzeitanzeige `lbl_status_clock` (`font_clock`, `#333333`) — zeigt `HH:MM:SS` aus RTC/SNTP
+- **Links:** Uhrzeitanzeige `lbl_status_clock` (`font_clock`, `#333333`) — zeigt `HH:MM:SS` aus SNTP
 - **Mitte:** Schneeflocken-Icon (`lbl_kompressor_icon`): grau = aus, blau = kühlt aktiv
 - **Rechts:** Button `btn_to_settings` (60×54 px, dunkelgrau `#444444`) mit Zahnrad-Icon (`\uF013`) → `lvgl.page.show: page_settings`
 - Farbe des Schneeflocken-Icons wird via `climate.on_state` Lambda gesetzt

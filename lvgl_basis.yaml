@@ -144,7 +144,9 @@ interval:
             lv_label_set_text(id(lbl_status_clock), tbuf);
             static const char* wdays[] = {"Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"};
             char dbuf[24];
-            snprintf(dbuf, sizeof(dbuf), "%s, %02d.%02d.", wdays[t.day_of_week], t.day_of_month, t.month);
+            int dow = t.day_of_week;
+            if (dow < 0 || dow > 6) dow = 0;  // Bounds check
+            snprintf(dbuf, sizeof(dbuf), "%s, %02d.%02d.", wdays[dow], t.day_of_month, t.month);
             lv_label_set_text(id(lbl_status_date), dbuf);
           }
 
