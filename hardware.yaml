@@ -37,16 +37,23 @@ output:
     zero_means_zero: true
 
   # PWM Lüftersteuerung (Kompressor-Lüfter)
+  # Arctic 14 Max: 4-Pin PWM, Open-Collector 5V-Spec (Intel).
+  # ESP32 (3.3V) reicht nicht direkt → Open-Drain + 10kΩ Pull-Up an 5V nötig.
   - platform: ledc
     id: output_luefter_kompressor_pwm
-    pin: ${pin_pwm4}
+    pin:
+      number: ${pin_pwm4}
+      mode:
+        output: true
+        open_drain: true
     frequency: 25000 Hz
-    min_power: 0.03
+    min_power: 0.0
+    zero_means_zero: true
 
   # Kompressor-Relais Ein/Aus
   - platform: gpio
     id: output_kompressor_relais
-    pin: ${pin_pwm1}
+    pin: ${pin_pwm3}
 
 
 i2c_device:
