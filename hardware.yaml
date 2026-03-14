@@ -62,7 +62,8 @@ one_wire:
     id: one_wire_bus
     i2c_id: i2c_bus
     active_pullup: true
-    
+    strong_pullup: true
+
 i2c_device:
   - id: i2c_amg8833
     address: 0x69
