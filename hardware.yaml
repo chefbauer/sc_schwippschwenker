@@ -4,11 +4,11 @@
 # Fallback:          RTC-Chip
 # ================================
 time:
-  - platform: ds1307           # ESPHome-Treiber unterstützt DS3231
-    id: rtc_ds3231
-    address: 0x68
-    i2c_id: i2c_bus
-    update_interval: never     # Chip läuft autonom; wird nur bei SNTP-Sync geschrieben
+  #- platform: ds1307           # ESPHome-Treiber unterstützt DS3231
+  #  id: rtc_ds3231
+  #  address: 0x68
+  #  i2c_id: i2c_bus
+  #  update_interval: never     # Chip läuft autonom; wird nur bei SNTP-Sync geschrieben
 
   - platform: sntp
     id: sntp_time
@@ -19,8 +19,8 @@ time:
     on_time_sync:
       - lambda: |-
           // RTC mit SNTP-Zeit synchronisieren sobald Internet verfügbar
-          id(rtc_ds3231).write_time();
-          ESP_LOGI("rtc", "RTC mit NTP synchronisiert");
+          //id(rtc_ds3231).write_time();
+          //ESP_LOGI("rtc", "RTC mit NTP synchronisiert");
 
 mcp4728:
   - id: dac_output
