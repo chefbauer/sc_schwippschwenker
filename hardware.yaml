@@ -79,13 +79,14 @@ globals:
     initial_value: '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}'
 
 sensor:
-  # Becken-Temperatursensor SHT30 (I2C, Adresse 0x44)
-  - platform: sht3xd
-    id: sht30_becken
+  # Becken-Temperatursensor MCP9601 + Typ-K Thermoelement (I2C, Adresse 0x60)
+  - platform: mcp9600
+    id: mcp9601_becken
     i2c_id: i2c_bus
-    address: 0x44
-    update_interval: 3s
-    temperature:
+    address: 0x60
+    thermocouple_type: K
+    update_interval: 10s
+    hot_junction_temperature:
       id: sensor_temp_becken
       name: "Temperatur Becken"
       accuracy_decimals: 1
@@ -94,11 +95,12 @@ sensor:
       state_class: measurement
       on_value:
         - lvgl.widget.refresh: lbl_temp_becken
-    humidity:
-      id: sensor_humi_becken
-      name: "Luftfeuchtigkeit Becken"
-      accuracy_decimals: 0
-      unit_of_measurement: "%"
+    cold_junction_temperature:
+      name: "Temperatur MCP9601 Chip"
+      accuracy_decimals: 1
+      internal: true
+    temperature_delta:
+      name: "Temperaturdifferenz Becken"
       internal: true
 
   # AMG8833 Infrarot-Temperatursensor (8x8 Matrix)

@@ -59,14 +59,15 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 
 ## Becken-Temperatursensor
 
-**Sensor:** SHT30 (I²C, `platform: sht3xd`, Adresse `0x44`, Bus `i2c_bus`)
+**Sensor:** MCP9601 + Typ-K Thermoelement (I²C, `platform: mcp9600`, Adresse `0x60`, Bus `i2c_bus`)
 
 | ID | Typ | Wert |
 |---|---|---|
-| `sensor_temp_becken` | Temperatur | Hauptsensor für Thermostat + Statusleiste |
-| `sensor_humi_becken` | Luftfeuchtigkeit | `internal: true` (nicht exposéd) |
+| `sensor_temp_becken` | `hot_junction_temperature` | Thermoelement-Spitze → Thermostat + Statusleiste |
+| `cold_junction_temperature` | Chip-Ambient | `internal: true` |
+| `temperature_delta` | Differenz | `internal: true` |
 
-**Hinweis:** 1-Wire / DS2484 / DS18B20 wurden verworfen – zu viele Kompatibilitätsprobleme (fehlender statischer Pullup, Flackern). SHT30 läuft direkt auf dem bestehenden I²C-Bus, kein zusätzliches Hardware.
+**Adresse:** MCP9601 default `0x60`, konfigurierbar via Addr-Pins auf `0x60`–`0x67`.
 
 ---
 
