@@ -73,7 +73,7 @@ i2c_device:
     address: 0x69
     i2c_id: i2c_bus
 
-  # DS18B20 I²C-Bridge (ESP32-S3 Slave)
+  # DS18B20 I²C-Bridge (ESP32-C3 Slave)
   - id: temp_bridge
     address: 0x48
     i2c_id: i2c_bus
@@ -104,19 +104,23 @@ sensor:
     state_class: measurement
     update_interval: 1s
     lambda: |-
+      // ESP32-C3 IDF 4.x I2C-Slave Bug: Repeated-START (write-then-read) wird nicht ACKt.
+      // Workaround: Reiner 2-Byte-Read ohne vorherigen Register-Write.
+      // C3-Seite ignoriert onReceive() sowieso, also kein Unterschied im Verhalten.
       uint8_t buf[2];
-      if (id(temp_bridge).read_register(0x00, buf, 2) != i2c::ERROR_OK) {
-        ESP_LOGE("bridge", "I2C read_register fehlgeschlagen (0x48)");
+      auto err = id(i2c_bus)->read(0x48, buf, 2);
+      if (err != i2c::ERROR_OK) {
+        ESP_LOGE("bridge", "I2C raw read fehlgeschlagen (0x48), err=%d", (int)err);
         return {};
       }
       int16_t raw = (int16_t)((buf[0] << 8) | buf[1]);
-      ESP_LOGD("bridge", "raw bytes: 0x%02X 0x%02X → raw=%d", buf[0], buf[1], raw);
+      ESP_LOGD("bridge", "raw bytes: 0x%02X 0x%02X -> raw=%d", buf[0], buf[1], raw);
       if (raw == (int16_t)0x8000) {
-        ESP_LOGW("bridge", "Error-Marker empfangen – C3 hat keinen gültigen Sensorwert");
+        ESP_LOGW("bridge", "Error-Marker empfangen – C3 hat keinen gueltigen Sensorwert");
         return {};
       }
       float t = raw / 16.0f;
-      ESP_LOGI("bridge", "Becken-Temp: %.4f °C", t);
+      ESP_LOGI("bridge", "Becken-Temp: %.4f degC", t);
       return t;
     on_value:
       - lvgl.widget.refresh: lbl_temp_becken

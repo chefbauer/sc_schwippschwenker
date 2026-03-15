@@ -33,11 +33,13 @@
  *       accuracy_decimals: 1
  *       device_class: temperature
  *       state_class: measurement
- *       update_interval: 5s
+ *       update_interval: 1s
  *       lambda: |-
+ *         // ESP32-C3 IDF 4.x Bug: Repeated-START (write-then-read) wird nicht ACKt.
+ *         // Workaround: reiner Raw-Read ohne Register-Write davor.
  *         uint8_t buf[2];
- *         if (id(temp_bridge).read_register(0x00, buf, 2) != i2c::ERROR_OK)
- *           return {};
+ *         auto err = id(i2c_bus)->read(0x48, buf, 2);
+ *         if (err != i2c::ERROR_OK) return {};
  *         int16_t raw = (int16_t)((buf[0] << 8) | buf[1]);
  *         if (raw == (int16_t)0x8000) return {};   // Error-Marker
  *         return raw / 16.0f;
@@ -70,6 +72,11 @@ portMUX_TYPE tempMux = portMUX_INITIALIZER_UNLOCKED;
 int16_t      g_temp_raw = 0;     // Temperatur × 16  →  0.0625 °C / LSB
 bool         g_valid    = false;
 
+// Für Logging aus loop() statt aus dem Wire-Callback
+volatile bool    g_req_fired = false;
+volatile int16_t g_req_sent  = 0;
+volatile bool    g_req_valid = false;
+
 // ── I²C-Callbacks ─────────────────────────────────────────────────────────────
 
 // Master schreibt ein Register-Byte vor dem Lesen – wir ignorieren es,
@@ -79,6 +86,8 @@ void onReceive(int /*len*/) {
 }
 
 // Master fordert Daten an → 2 Bytes senden (MSB first)
+// ACHTUNG: Callback so kurz wie möglich halten – kein Serial, kein LED, kein delay!
+// Serial.printf(%.4f) würde mehrere ms blockieren und den I²C-Timeout des Masters auslösen.
 void onRequest() {
   int16_t snap;
   bool    valid;
@@ -88,22 +97,18 @@ void onRequest() {
     valid = g_valid;
   portEXIT_CRITICAL_ISR(&tempMux);
 
-  // Debug: 1× langer Blitz → Master hat uns adressiert
-  digitalWrite(PIN_LED, LOW);   // an
-  // (LED bleibt an bis nach dem Write – Wire-CB muss schnell sein, kein delay hier!)
-
   if (!valid) {
     Wire.write((uint8_t)0x80);
     Wire.write((uint8_t)0x00);
-    digitalWrite(PIN_LED, HIGH);  // aus
-    Serial.println("  [I2C] onRequest → ERROR-Marker gesendet (kein gültiger Wert)");
-    return;
+    g_req_sent  = (int16_t)0x8000;
+    g_req_valid = false;
+  } else {
+    Wire.write((uint8_t)((snap >> 8) & 0xFF));  // MSB
+    Wire.write((uint8_t)( snap       & 0xFF));  // LSB
+    g_req_sent  = snap;
+    g_req_valid = true;
   }
-  Wire.write((uint8_t)((snap >> 8) & 0xFF));  // MSB
-  Wire.write((uint8_t)( snap       & 0xFF));  // LSB
-  digitalWrite(PIN_LED, HIGH);  // aus
-  Serial.printf("  [I2C] onRequest → gesendet: 0x%02X 0x%02X  (%.4f °C)\n",
-                (snap >> 8) & 0xFF, snap & 0xFF, snap / 16.0f);
+  g_req_fired = true;  // loop() übernimmt Logging + LED
 }
 
 // ── Setup ──────────────────────────────────────────────────────────────────────
@@ -197,4 +202,19 @@ void loop() {
 
   Serial.printf("  Temp: %+7.4f °C   raw=0x%04X (%d)\n",
                 t, (uint16_t)raw, raw);
+
+  // I²C-Request-Logging (verzögert aus Callback heraus – kein Float im ISR-Kontext)
+  if (g_req_fired) {
+    g_req_fired = false;
+    if (!g_req_valid) {
+      Serial.println("  [I2C] onRequest -> ERROR-Marker gesendet (kein gueltiger Wert)");
+    } else {
+      int16_t sent = g_req_sent;
+      Serial.printf("  [I2C] onRequest -> gesendet: 0x%02X 0x%02X  (%.4f degC)\n",
+                    (sent >> 8) & 0xFF, sent & 0xFF, sent / 16.0f);
+      // 1× kurz blinken als I²C-Bestätigung
+      digitalWrite(PIN_LED, LOW);  delay(20);
+      digitalWrite(PIN_LED, HIGH);
+    }
+  }
 }
