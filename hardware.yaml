@@ -227,7 +227,7 @@ climate:
           level: "${fan_kompressor_max_perc}%"
       - output.set_level:
           id: output_pumpe_dacB
-          level: "${pumpe_becken_max_perc}%"
+          level: "${c_pumpe_umwaelzung_ein_perc}%"
     idle_action:
       - output.turn_off: output_kompressor_relais
       - output.set_level:
