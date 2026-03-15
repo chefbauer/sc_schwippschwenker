@@ -53,7 +53,7 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | LVGL Version | 8.x (kein LVGL 9!) |
 | Betrieb | Standalone (kein Home Assistant nötig) |
 | Zeit-Quelle | SNTP (NTP) — RTC wird später hinzugefügt |
-| 1-Wire Bus | Nativ ESP32 GPIO (`pin_1w` = GPIO45), Platform `gpio` |
+| 1-Wire Bus | DS2484 I²C→1-Wire Bridge (`active_pullup: true`), I²C-Bus `i2c_bus` |
 
 ---
 
@@ -518,5 +518,7 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 |---|---|---|
 | 2026-03-15 | 1-Wire: DS2484 (I2C-Bridge) entfernt → Nativer GPIO-Bus auf GPIO45 (`pin_1w`) | `hardware.yaml` |
 | 2026-03-15 | DS18B20 `0xae00000fba143528` als `sensor_temp_becken` eingebunden, Template entfernt | `hardware.yaml` |
+| 2026-03-15 | DS18B20 `resolution: 9` (94ms statt 750ms) + `update_interval: 10s` → LVGL-Flickern behoben | `hardware.yaml` |
+| 2026-03-15 | DS2484 wieder eingebaut (`active_pullup: true`), GPIO-Bus entfernt – echter Fix für LVGL-Flackern | `hardware.yaml` |
 | 2026-03-15 | Becken-Temperatur-Label `lbl_temp_becken` in Statusleiste (rechts neben Schneeflocke, Farbe `#2299DD`) | `lvgl_basis.yaml` |
 | 2026-03-15 | `lbl_temp_becken`: Font auf `font_temp` (hat `°C`), Update via `lvgl.widget.refresh` + Lambda im Widget | `hardware.yaml`, `lvgl_basis.yaml` |

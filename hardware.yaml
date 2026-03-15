@@ -67,11 +67,12 @@ output:
     pin: ${pin_pwm3}
 
 
-# Nativer ESP32 1-Wire Bus
+# DS2484: I2C → 1-Wire Busmaster (kein CPU-Blocking, kein Interrupt-Disable)
 one_wire:
-  - platform: gpio
+  - platform: ds2484
     id: one_wire_bus
-    pin: ${pin_1w}
+    i2c_id: i2c_bus
+    active_pullup: true
 
 i2c_device:
   - id: i2c_amg8833
@@ -86,12 +87,14 @@ globals:
 
 sensor:
   # Becken-Temperatursensor DS18B20 auf 1-Wire Bus (GPIO45)
+  # resolution: 9 → 94ms Wandlungszeit, reduziert Blocking-Frequenz
   - platform: dallas_temp
     id: sensor_temp_becken
     name: "Temperatur Becken"
     address: 0xae00000fba143528
     one_wire_id: one_wire_bus
-    update_interval: 3s
+    update_interval: 10s
+    resolution: 9
     accuracy_decimals: 1
     unit_of_measurement: "°C"
     device_class: temperature
