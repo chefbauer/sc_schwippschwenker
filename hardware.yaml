@@ -1,3 +1,14 @@
+esphome:
+  on_boot:
+    priority: -100        # nach LVGL- und Light-Init
+    then:
+      - light.control:
+          id: light_screen_background
+          brightness: 70%
+      - lambda: |-
+          id(brightness_auto_mode) = true;
+          lv_obj_add_state(id(sw_brightness_auto), LV_STATE_CHECKED);
+
 # ================================
 # Zeit über SNTP (NTP)
 # ================================
