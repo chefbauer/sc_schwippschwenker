@@ -14,8 +14,8 @@
  *   z. B. 25.0 °C → raw = 400 = 0x0190, gesendet: 0x01 0x90
  *   Bei ungültigem Sensor → 0x8000 als Error-Marker
  *
- * Board-Manager : esp32 by Espressif  ≥ 2.0
- * Board         : "ESP32C3 Dev Module"
+ * Board-Manager : esp32 by Espressif  2.0.17  (IDF 4.x – I2C-Slave stabil!)
+ * Board         : "ESP32C3 Dev Module"  (NICHT v3.x – I2C-Slave dort kaputt)
  * Libraries     : OneWire, DallasTemperature
  *
  * ── ESPHome Gegenseite ────────────────────────────────────────────────────────
@@ -151,9 +151,14 @@ void setup() {
   }
 
   // I²C Slave starten
+  // Hinweis: Wire.begin(addr, sda, scl) ist auf ESP32-C3 / Arduino v3.x unzuverlässig.
+  // Korrekte Reihenfolge: setPins → onReceive/onRequest → begin(addr)
+  Wire.setPins(I2C_SDA, I2C_SCL);
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
-  Wire.begin((uint8_t)I2C_ADDR, I2C_SDA, I2C_SCL);
+  bool ok = Wire.begin((uint8_t)I2C_ADDR);
+  Serial.printf("  Wire.begin(0x%02X) -> %s\n", I2C_ADDR, ok ? "OK" : "FEHLER!");
+  Serial.flush();
 
   Serial.println("\n  I²C-Slave aktiv – warte auf Anfragen …\n");
 }
