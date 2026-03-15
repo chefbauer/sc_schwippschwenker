@@ -72,6 +72,15 @@ i2c_device:
     address: 0x69
     i2c_id: i2c_bus
 
+# TCA9548A I2C-Multiplexer (Adresse 0x70)
+tca9548a:
+  - id: i2c_mux
+    i2c_id: i2c_bus
+    address: 0x70
+    channels:
+      - bus_id: i2c_mux_ch0
+        channel: 0
+
 globals:
   - id: amg_pixel_temps
     type: std::array<float, 64>
@@ -79,14 +88,14 @@ globals:
     initial_value: '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}'
 
 sensor:
-  # Becken-Temperatursensor MCP9601 + Typ-K Thermoelement (I2C, Adresse 0x60)
-  - platform: mcp9600
-    id: mcp9601_becken
+  # Becken-Temperatursensor SHT30 direkt auf i2c_bus (Adresse 0x44)
+  # Kein Adresskonflikt mehr – SHT4x liegt hinter TCA9548A Kanal 0
+  - platform: sht3xd
+    id: sht30_becken
     i2c_id: i2c_bus
-    address: 0x60
-    thermocouple_type: K
+    address: 0x44
     update_interval: 10s
-    hot_junction_temperature:
+    temperature:
       id: sensor_temp_becken
       name: "Temperatur Becken"
       accuracy_decimals: 1
@@ -95,12 +104,11 @@ sensor:
       state_class: measurement
       on_value:
         - lvgl.widget.refresh: lbl_temp_becken
-    cold_junction_temperature:
-      name: "Temperatur MCP9601 Chip"
-      accuracy_decimals: 1
-      internal: true
-    temperature_delta:
-      name: "Temperaturdifferenz Becken"
+    humidity:
+      id: sensor_humi_becken
+      name: "Luftfeuchtigkeit Becken"
+      accuracy_decimals: 0
+      unit_of_measurement: "%"
       internal: true
 
   # AMG8833 Infrarot-Temperatursensor (8x8 Matrix)

@@ -59,15 +59,19 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 
 ## Becken-Temperatursensor
 
-**Sensor:** MCP9601 + Typ-K Thermoelement (I²C, `platform: mcp9600`, Adresse `0x60`, Bus `i2c_bus`)
+**Sensor:** SHT30 direkt auf `i2c_bus` (Adresse `0x44`)
+
+**Multiplexer:** TCA9548A (`0x70`) – alle sensorphalanx-Sensoren auf Kanal 0 (`i2c_mux_ch0`):
+- MLX90632 (`i2c_device`, `0x3A`)
+- VL53L4CD (`0x29`)
+- SHT4x (`0x44`) ← kein Konflikt mehr, da hinter Mux
+- BMP581 (`0x46`)
+- VEML7700 (`0x10`)
 
 | ID | Typ | Wert |
 |---|---|---|
-| `sensor_temp_becken` | `hot_junction_temperature` | Thermoelement-Spitze → Thermostat + Statusleiste |
-| `cold_junction_temperature` | Chip-Ambient | `internal: true` |
-| `temperature_delta` | Differenz | `internal: true` |
-
-**Adresse:** MCP9601 default `0x60`, konfigurierbar via Addr-Pins auf `0x60`–`0x67`.
+| `sensor_temp_becken` | Temperatur | Thermostat + Statusleiste |
+| `sensor_humi_becken` | Luftfeuchtigkeit | `internal: true` |
 
 ---
 
