@@ -85,15 +85,17 @@ globals:
     initial_value: '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}'
 
 sensor:
-  # Temperatursensor Becken (Platzhalter, wird später ersetzt)
-  - platform: template
+  # Becken-Temperatursensor DS18B20 auf 1-Wire Bus (GPIO45)
+  - platform: dallas_temp
     id: sensor_temp_becken
     name: "Temperatur Becken"
+    address: 0xae00000fba143528
+    one_wire_id: one_wire_bus
+    update_interval: 3s
+    accuracy_decimals: 1
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    lambda: |-
-      return 5.0;
 
   # AMG8833 Infrarot-Temperatursensor (8x8 Matrix)
   - platform: template
@@ -196,7 +198,7 @@ climate:
   - platform: thermostat
     name: thermostat
     id: climate_thermostat
-    sensor: sensor_temp_becken # kommt noch
+    sensor: sensor_temp_becken
     min_cooling_off_time: 120s
     min_cooling_run_time: 90s
     min_idle_time: 30s

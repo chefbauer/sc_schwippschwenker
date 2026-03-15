@@ -63,9 +63,9 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 
 | Rolle | Sensor | ID | Status |
 |---|---|---|---|
-| Becken-Temperatur | DS18B20 (o.ä.) | *(ausstehend – wird nach Bus-Scan eingetragen)* | TODO |
+| Becken-Temperatur | DS18B20 | `0xae00000fba143528` | aktiv, `update_interval: 10s` |
 
-**Sensor-Einbindung (hardware.yaml):** Sobald die ID bekannt ist, wird `sensor_temp_becken` vom Template-Sensor auf einen echten `dallas_temp`-Sensor umgestellt.
+**Sensor-Einbindung (hardware.yaml):** `sensor_temp_becken` läuft als echter `dallas_temp`-Sensor; Thermostat verwendet ihn direkt.
 
 ---
 
@@ -164,6 +164,7 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 - `status_bar` unten, 1024×60 px (60 px Höhe), `#F0F0F0`
 - **Links:** Uhrzeitanzeige `lbl_status_clock` (`font_clock`, `#333333`) — zeigt `HH:MM:SS` aus SNTP
 - **Mitte:** Schneeflocken-Icon (`lbl_kompressor_icon`): grau = aus, blau = kühlt aktiv
+- **Mitte-Rechts:** Becken-Temperatur (`lbl_temp_becken`, `font_clock`, Farbe `#2299DD` hellblau-cyan), x+80 vom Center, Beispiel: `12.3°C`
 - **Rechts:** Button `btn_to_settings` (60×54 px, dunkelgrau `#444444`) mit Zahnrad-Icon (`\uF013`) → `lvgl.page.show: page_settings`
 - Farbe des Schneeflocken-Icons wird via `climate.on_state` Lambda gesetzt
 
@@ -496,7 +497,7 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
 - [ ] Einstellungen Tab "System" füllen
 - [ ] Einstellungen Tab "Kühler" füllen
-- [ ] `sensor_temp_becken` von Template auf echten DS18B20-Sensor umstellen (ID ausstehend)
+- [x] `sensor_temp_becken` von Template auf echten DS18B20-Sensor umstellen (ID ausstehend)
 
 ---
 
@@ -505,3 +506,5 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 | Datum | Änderung | Datei |
 |---|---|---|
 | 2026-03-15 | 1-Wire: DS2484 (I2C-Bridge) entfernt → Nativer GPIO-Bus auf GPIO45 (`pin_1w`) | `hardware.yaml` |
+| 2026-03-15 | DS18B20 `0xae00000fba143528` als `sensor_temp_becken` eingebunden, Template entfernt | `hardware.yaml` |
+| 2026-03-15 | Becken-Temperatur-Label `lbl_temp_becken` in Statusleiste (rechts neben Schneeflocke, Farbe `#2299DD`) | `lvgl_basis.yaml` |
