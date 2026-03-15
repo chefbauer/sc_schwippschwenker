@@ -1,5 +1,15 @@
 # SC Drehwurm – Projektinfo
 
+---
+
+> **KI-Arbeitsanweisung:** Diese Datei ist die zentrale Projektdokumentation.
+> **Nach jeder Änderung an YAML-Dateien** diese Projektinfo automatisch aktualisieren –
+> ohne dass der Benutzer es explizit fordert. Relevante Daten: Pin-Belegungen,
+> Plattform-/Bus-Entscheidungen, Sensor-IDs, neue Komponenten, geänderte Logik,
+> offene TODOs. Änderungen im Abschnitt **Changelog** dokumentieren.
+
+---
+
 ## Was ist das hier?
 
 **Schnellkühlanlage** auf Basis eines Kompressorkühlers.
@@ -43,6 +53,19 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | LVGL Version | 8.x (kein LVGL 9!) |
 | Betrieb | Standalone (kein Home Assistant nötig) |
 | Zeit-Quelle | SNTP (NTP) — RTC wird später hinzugefügt |
+| 1-Wire Bus | Nativ ESP32 GPIO (`pin_1w` = GPIO45), Platform `gpio` |
+
+---
+
+## 1-Wire / Temperatursensoren
+
+**Bus:** Nativer ESP32 1-Wire auf `${pin_1w}` (GPIO45), ESPHome `platform: gpio`.
+
+| Rolle | Sensor | ID | Status |
+|---|---|---|---|
+| Becken-Temperatur | DS18B20 (o.ä.) | *(ausstehend – wird nach Bus-Scan eingetragen)* | TODO |
+
+**Sensor-Einbindung (hardware.yaml):** Sobald die ID bekannt ist, wird `sensor_temp_becken` vom Template-Sensor auf einen echten `dallas_temp`-Sensor umgestellt.
 
 ---
 
@@ -473,3 +496,12 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
 - [ ] Einstellungen Tab "System" füllen
 - [ ] Einstellungen Tab "Kühler" füllen
+- [ ] `sensor_temp_becken` von Template auf echten DS18B20-Sensor umstellen (ID ausstehend)
+
+---
+
+## Changelog
+
+| Datum | Änderung | Datei |
+|---|---|---|
+| 2026-03-15 | 1-Wire: DS2484 (I2C-Bridge) entfernt → Nativer GPIO-Bus auf GPIO45 (`pin_1w`) | `hardware.yaml` |

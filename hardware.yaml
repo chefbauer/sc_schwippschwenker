@@ -67,13 +67,11 @@ output:
     pin: ${pin_pwm3}
 
 
-# DS2484: I2C → 1-Wire Busmaster
+# Nativer ESP32 1-Wire Bus
 one_wire:
-  - platform: ds2484
+  - platform: gpio
     id: one_wire_bus
-    i2c_id: i2c_bus
-    active_pullup: false
-    #strong_pullup: true
+    pin: ${pin_1w}
 
 i2c_device:
   - id: i2c_amg8833
