@@ -228,6 +228,17 @@ script:
             ESP_LOGW("schwenker", "goto_slot: sensor_motor_position NaN – Abbruch");
             return;
           }
+          // Motor-Init: gleiche Konfiguration wie beim Schwenken (Closed Loop, 64 Steps, 2000 mA, idle min)
+          std::vector<unsigned char> data;
+          data = add_crc(${motor_can_id}, { 0x82, 0x04 });        // MODE: Closed Loop
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x84, 0x40 });        // MSTEP: 64 subdivisions
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x83, 0x07, 0xD0 });  // Work current: 2000 mA
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x9B, 0x00 });        // Idle current: param 0 = min
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+
           float current_deg = current_raw / 16384.0f * 360.0f;
           float target_deg  = (float)(slot - 1) * 60.0f;  // 1=0°, 2=60° …6=300°
           float rel         = target_deg - current_deg;
@@ -236,4 +247,11 @@ script:
           while (rel < -180.0f) rel += 360.0f;
           ESP_LOGI("schwenker", "goto_slot %d  target=%.1f°  aktuell=%.1f°  rel=%.1f°",
                    slot, target_deg, current_deg, rel);
-          id(script_motor_goto_relative_degree)->execute(60, 150, rel);
+          // 5 RPM + acc 50: langsam und sanft im Wasser
+          id(script_motor_goto_relative_degree)->execute(5, 50, rel);
+      # Wartezeit: lange genug für die Fahrt (max. Weg ≈ 180° bei 5 RPM ≈ ~6 s)
+      - delay: 7000ms
+      - lambda: |-
+          // Nach der Fahrt: FOC-Modus → kein Haltestrom im Stillstand
+          id(can_bus)->send_data(${motor_can_id}, false,
+              add_crc(${motor_can_id}, { 0x82, 0x05 }));
