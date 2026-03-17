@@ -279,7 +279,7 @@ lvgl:
                               text_color: 0xFFFFFF
 
               # ---- Slot-Container links: Slot 1 (R), 2 (Y), 3 (G) ----
-              - button:
+              - obj:
                   id: slot1_red
                   width: 290
                   height: 120
@@ -290,37 +290,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 0;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 1: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 1: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 0;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot1_time), "00:00");
-                          lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 1: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot1_tab
                         width: 60
                         height: 100%
@@ -330,12 +304,13 @@ lvgl:
                         bg_color: 0xFF0000
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 1 (0 Grad)");
                               id(script_schwenker_goto_slot)->execute(1);
                         widgets:
                           - label:
@@ -343,7 +318,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0xFFFFFF
-                    - obj:
+                    - button:
                         id: slot1_timer_area
                         width: 230
                         height: 100%
@@ -353,13 +328,38 @@ lvgl:
                         bg_color: 0xFF0000
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 0;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 1: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 1: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 0;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot1_time), "00:00");
+                                lv_label_set_text(id(lbl_slot1_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 1: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot1_timer_title
@@ -384,7 +384,7 @@ lvgl:
                               align: RIGHT_MID
                               x: -17
                               text_color: 0x880000
-              - button:
+              - obj:
                   id: slot2_yellow
                   width: 290
                   height: 120
@@ -395,37 +395,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 1;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 2: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 2: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 1;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot2_time), "00:00");
-                          lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 2: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot2_tab
                         width: 60
                         height: 100%
@@ -435,12 +409,13 @@ lvgl:
                         bg_color: 0xFFFF00
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 2 (60 Grad)");
                               id(script_schwenker_goto_slot)->execute(2);
                         widgets:
                           - label:
@@ -448,7 +423,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: slot2_timer_area
                         width: 230
                         height: 100%
@@ -458,13 +433,38 @@ lvgl:
                         bg_color: 0xFFFF00
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 1;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 2: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 2: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 1;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot2_time), "00:00");
+                                lv_label_set_text(id(lbl_slot2_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 2: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot2_timer_title
@@ -489,7 +489,7 @@ lvgl:
                               align: RIGHT_MID
                               x: -17
                               text_color: 0x666600
-              - button:
+              - obj:
                   id: slot3_green
                   width: 290
                   height: 120
@@ -500,37 +500,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 2;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 3: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 3: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 2;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot3_time), "00:00");
-                          lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 3: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot3_tab
                         width: 60
                         height: 100%
@@ -540,12 +514,13 @@ lvgl:
                         bg_color: 0x00FF00
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 3 (120 Grad)");
                               id(script_schwenker_goto_slot)->execute(3);
                         widgets:
                           - label:
@@ -553,7 +528,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: slot3_timer_area
                         width: 230
                         height: 100%
@@ -563,13 +538,38 @@ lvgl:
                         bg_color: 0x00FF00
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 2;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 3: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 3: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 2;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot3_time), "00:00");
+                                lv_label_set_text(id(lbl_slot3_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 3: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot3_timer_title
@@ -596,7 +596,7 @@ lvgl:
                               text_color: 0x004400
 
               # ---- Slot-Container rechts: Slot 4 (C), 5 (B), 6 (M) ----
-              - button:
+              - obj:
                   id: slot4_cyan
                   width: 290
                   height: 120
@@ -607,37 +607,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 3;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 4: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 4: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 3;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot4_time), "00:00");
-                          lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 4: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot4_tab
                         width: 60
                         height: 100%
@@ -647,12 +621,13 @@ lvgl:
                         bg_color: 0x00FFFF
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 4 (180 Grad)");
                               id(script_schwenker_goto_slot)->execute(4);
                         widgets:
                           - label:
@@ -660,7 +635,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: slot4_timer_area
                         width: 230
                         height: 100%
@@ -670,13 +645,38 @@ lvgl:
                         bg_color: 0x00FFFF
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 3;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 4: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 4: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 3;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot4_time), "00:00");
+                                lv_label_set_text(id(lbl_slot4_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 4: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot4_timer_title
@@ -701,7 +701,7 @@ lvgl:
                               align: RIGHT_MID
                               x: -17
                               text_color: 0x004444
-              - button:
+              - obj:
                   id: slot5_blue
                   width: 290
                   height: 120
@@ -712,37 +712,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 4;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 5: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 5: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 4;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot5_time), "00:00");
-                          lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 5: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot5_tab
                         width: 60
                         height: 100%
@@ -752,12 +726,13 @@ lvgl:
                         bg_color: 0x0000FF
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 5 (240 Grad)");
                               id(script_schwenker_goto_slot)->execute(5);
                         widgets:
                           - label:
@@ -765,7 +740,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0xFFFFFF
-                    - obj:
+                    - button:
                         id: slot5_timer_area
                         width: 230
                         height: 100%
@@ -775,13 +750,38 @@ lvgl:
                         bg_color: 0x0000FF
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 4;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 5: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 5: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 4;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot5_time), "00:00");
+                                lv_label_set_text(id(lbl_slot5_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 5: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot5_timer_title
@@ -806,7 +806,7 @@ lvgl:
                               align: RIGHT_MID
                               x: -17
                               text_color: 0xFFFFFF
-              - button:
+              - obj:
                   id: slot6_magenta
                   width: 290
                   height: 120
@@ -817,37 +817,11 @@ lvgl:
                   clip_corner: true
                   bg_opa: TRANSP
                   border_width: 0
-                  shadow_width: 0
-                  outline_width: 0
                   pad_all: 0
                   scrollable: false
-                  on_short_click:
-                    - lambda: |-
-                        int i = 5;
-                        if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
-                          id(slot_start_ms)[i] = millis();
-                          id(slot_status)[i] = 1;
-                          lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8c");
-                          ESP_LOGI("timer", "Timer 6: Start");
-                        } else {
-                          id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
-                          id(slot_status)[i] = 2;
-                          lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 6: Stop");
-                        }
-                  on_long_press:
-                    - lambda: |-
-                        int i = 5;
-                        if (id(slot_status)[i] == 2) {
-                          id(slot_elapsed_ms)[i] = 0;
-                          id(slot_start_ms)[i] = 0;
-                          id(slot_status)[i] = 0;
-                          lv_label_set_text(id(lbl_slot6_time), "00:00");
-                          lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8b");
-                          ESP_LOGI("timer", "Timer 6: Reset");
-                        }
+                  clickable: false
                   widgets:
-                    - obj:
+                    - button:
                         id: slot6_tab
                         width: 60
                         height: 100%
@@ -857,12 +831,13 @@ lvgl:
                         bg_color: 0xFF00FF
                         bg_opa: COVER
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_all: 0
-                        scrollable: false
-                        clickable: true
-                        on_click:
+                        on_press:
                           - lambda: |-
+                              ESP_LOGI("slot", "Goto Slot 6 (300 Grad)");
                               id(script_schwenker_goto_slot)->execute(6);
                         widgets:
                           - label:
@@ -870,7 +845,7 @@ lvgl:
                               align: CENTER
                               text_font: font_normal
                               text_color: 0xFFFFFF
-                    - obj:
+                    - button:
                         id: slot6_timer_area
                         width: 230
                         height: 100%
@@ -880,13 +855,38 @@ lvgl:
                         bg_color: 0xFF00FF
                         bg_opa: 50%
                         border_width: 0
+                        shadow_width: 0
+                        outline_width: 0
                         radius: 0
                         pad_left: 12
                         pad_top: 0
                         pad_right: 0
                         pad_bottom: 0
-                        scrollable: false
-                        clickable: false
+                        on_short_click:
+                          - lambda: |-
+                              int i = 5;
+                              if (id(slot_status)[i] == 0 || id(slot_status)[i] == 2) {
+                                id(slot_start_ms)[i] = millis();
+                                id(slot_status)[i] = 1;
+                                lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8c");
+                                ESP_LOGI("timer", "Timer 6: Start");
+                              } else {
+                                id(slot_elapsed_ms)[i] += millis() - id(slot_start_ms)[i];
+                                id(slot_status)[i] = 2;
+                                lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 6: Stop");
+                              }
+                        on_long_press:
+                          - lambda: |-
+                              int i = 5;
+                              if (id(slot_status)[i] == 2) {
+                                id(slot_elapsed_ms)[i] = 0;
+                                id(slot_start_ms)[i] = 0;
+                                id(slot_status)[i] = 0;
+                                lv_label_set_text(id(lbl_slot6_time), "00:00");
+                                lv_label_set_text(id(lbl_slot6_symbol), "\xef\x81\x8b");
+                                ESP_LOGI("timer", "Timer 6: Reset");
+                              }
                         widgets:
                           - label:
                               id: lbl_slot6_timer_title
