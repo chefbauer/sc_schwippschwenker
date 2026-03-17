@@ -83,6 +83,11 @@ globals:
     initial_value: '200'        # 1–254: Motor interpoliert intern (glättet 50ms-Stufen)
                                 # 0 oder 255: kein internes Ramping → Ruck bei Stufen!
 
+  - id: sw_motor_mode          # 0 = Closed Loop (Mode 4)  |  1 = FOC (Mode 5)
+    type: int
+    restore_value: yes
+    initial_value: '0'          # Standard: Closed Loop – besser bei langsamen Bewegungen
+
   - id: slider_trim_last       # merkt sich den letzten Slider-Wert für Delta-Berechnung
     type: int
     restore_value: no
@@ -124,11 +129,13 @@ script:
   - id: script_schwenker_start
     mode: single              # mehrfaches Aufrufen ignoriert
     then:
-      # Motor-Init: Closed Loop Mode 4, 64 Subdivisions, 2000 mA, 5% Standby
+      # Motor-Init: konfigurierbarer Modus, 64 Subdivisions, 2000 mA, 5% Standby
       - lambda: |-
           std::vector<unsigned char> data;
-          data = add_crc(${motor_can_id}, { 0x82, 0x04 });        // MODE: Closed Loop
+          uint8_t mode_byte = (id(sw_motor_mode) == 1) ? 0x05 : 0x04;
+          data = add_crc(${motor_can_id}, { 0x82, mode_byte });    // MODE: Closed Loop (4) oder FOC (5)
           id(can_bus)->send_data(${motor_can_id}, false, data);
+          ESP_LOGI("schwenker", "Motor-Modus: %s", id(sw_motor_mode)==1 ? "FOC (5)" : "Closed Loop (4)");
           data = add_crc(${motor_can_id}, { 0x84, 0x40 });        // MSTEP: 64 subdivisions
           id(can_bus)->send_data(${motor_can_id}, false, data);
           data = add_crc(${motor_can_id}, { 0x83, 0x07, 0xD0 });  // Work current: 2000 mA
@@ -141,6 +148,24 @@ script:
           }
       - delay: 150ms   # init settle + 0x31-Antwort
       - lambda: |-
+          // ── NVS-Schutz: veraltete Flash-Werte auf gültige Grenzen klemmen ──
+          // (Verhindert z.B. sw_max_speed_rpm=28 aus älterer Firmware, wo arc_rpm
+          //  noch einen größeren Maximalwert hatte)
+          if (id(sw_max_speed_rpm) < 1 || id(sw_max_speed_rpm) > 20) {
+            id(sw_max_speed_rpm) = std::max(1, std::min(20, id(sw_max_speed_rpm)));
+            lv_arc_set_value(id(arc_rpm), id(sw_max_speed_rpm));
+            char buf[6]; snprintf(buf, sizeof(buf), "%d", id(sw_max_speed_rpm));
+            lv_label_set_text(id(lbl_arc_rpm_val), buf);
+            ESP_LOGW("schwenker", "sw_max_speed_rpm aus NVS war außerhalb [1..20] → korrigiert auf %d", id(sw_max_speed_rpm));
+          }
+          if (id(sw_halbperiode_ms) < 1000 || id(sw_halbperiode_ms) > 10000) {
+            id(sw_halbperiode_ms) = std::max((uint32_t)1000, std::min((uint32_t)10000, id(sw_halbperiode_ms)));
+            lv_arc_set_value(id(arc_schwenkzeit), (int)(id(sw_halbperiode_ms) / 100));
+            char buf[8]; snprintf(buf, sizeof(buf), "%.1fs", id(sw_halbperiode_ms) / 1000.0f);
+            lv_label_set_text(id(lbl_arc_zeit_val), buf);
+            ESP_LOGW("schwenker", "sw_halbperiode_ms aus NVS war außerhalb [1000..10000] → korrigiert auf %u", id(sw_halbperiode_ms));
+          }
+
           id(sw_richtung)   = 1;
           id(sw_phase_ms)   = 0;
           id(sw_elapsed_ms) = 0;
