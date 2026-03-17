@@ -171,6 +171,7 @@ script:
   #   Slot 1 = 0°, Slot 2 = 60°, Slot 3 = 120°,
   #   Slot 4 = 180°, Slot 5 = 240°, Slot 6 = 300°
   - id: script_schwenker_goto_slot
+    mode: restart          # neuer Slot-Klick bricht laufende Fahrt ab und startet sofort neu
     parameters:
       slot: int
     then:
@@ -193,10 +194,10 @@ script:
           while (rel < -180.0f) rel += 360.0f;
           ESP_LOGI("schwenker", "goto_slot %d  target=%.1f°  aktuell=%.1f°  rel=%.1f°",
                    slot, target_deg, current_deg, rel);
-          // 8 RPM + acc 50: langsam und sanft im Wasser
-          id(script_motor_goto_relative_degree)->execute(8, 50, rel);
-      # Wartezeit: lange genug für die Fahrt (max. Weg ≈ 180° bei 8 RPM ≈ ~4 s)
-      - delay: 5000ms
+          // 6 RPM + acc 20: sehr sanft, ruckelfrei im Wasser
+          id(script_motor_goto_relative_degree)->execute(6, 20, rel);
+      # Wartezeit: max. Weg ≈ 180° bei 6 RPM + acc 20 ≈ ~6 s
+      - delay: 7000ms
       - lambda: |-
           // Nach der Fahrt: Arbeitsstrom reduzieren, FOC-Modus
           id(can_bus)->send_data(${motor_can_id}, false,
