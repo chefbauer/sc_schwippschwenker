@@ -55,17 +55,32 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 | Zeit-Quelle | SNTP (NTP) — RTC wird später hinzugefügt |
 | Radio-Koprocessor | ESP32-C6 via `esp32_hosted` (SDIO 4-bit, extern definiert) |
 | BLE | ESP32-C6 stellt BLE bereit; Scanner in `ble.yaml` |
-| 1-Wire Bus | DS18B20 an ESP32-C3 BLE-Bridge → BTHome v2 |
+| 1-Wire Bus | DS18B20 an ESP32-C3 I²C-Bridge (`0x48`) → `temp_bridge` in `hardware.yaml` |
 
 ---
 
 ## Becken-Temperatursensor
 
-**Sensor:** DS18B20 via BLE-Bridge (ESP32-C3, BTHome v2)
+**Sensor:** DS18B20 via I²C-Bridge (ESP32-C3, ESP-IDF 5.x, `1w_i2c_bridge/`)
 
-**MAC:** `dc:da:0c:a1:89:8e`  
-**Sensor-ID:** `sensor_temp_becken` in `ble.yaml`  
-**ROM-Code:** `28:B2:FE:B9:0F:00:00:2E`
+**I²C-Adresse:** `0x48` → `i2c_device: temp_bridge` in `hardware.yaml`  
+**Sensor-ID:** `sensor_temp_becken` in `hardware.yaml` (Template-Sensor, `update_interval: 3s`)  
+**Datenformat:** `int16_raw / 16.0` → 0,0625 °C Auflösung; Error-Marker `0x8000`
+
+**Bridge-Firmware (`1w_i2c_bridge/main/main.c`):**
+
+| Pin | Funktion | Wert |
+|---|---|---|
+| GPIO0 | Sensor-VCC | OUTPUT HIGH (3,3 V) |
+| GPIO1 | 1-Wire Data | DS18B20, 4,7 kΩ Pull-Up |
+| GPIO2 | Sensor-GND | OUTPUT LOW |
+| GPIO3 | I²C SCL | Slave |
+| GPIO4 | I²C SDA | Slave |
+| GPIO8 | LED | active LOW, 2× Blinken bei gültiger Messung |
+
+- Messintervall: 3 s (`MEASURE_MS`), 12-bit → ~800 ms Wandlung
+- TX-Puffer wird alle 1 s aufgefrischt (`REFILL_MS`)
+- Kein WiFi / kein OTA (reine IDF-Firmware)
 
 **Alle sensorphalanx-Sensoren direkt am Haupt-Bus** (`i2c_bus`):
 - MLX90632 (`i2c_device`, `0x3A`)
@@ -82,13 +97,14 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 
 ## 1-Wire / Temperatursensoren
 
-**Bus:** Nativer ESP32 1-Wire auf `${pin_1w}` (GPIO45), ESPHome `platform: gpio`.
+**Bus:** DS18B20 hängt am ESP32-C3 I²C-Bridge (GPIO1, RMT-Hardware).
+ESPHome liest den Wert nicht direkt per 1-Wire, sondern über den I²C-Slave `temp_bridge` (0x48).
 
-| Rolle | Sensor | ID | Status |
-|---|---|---|---|
-| Becken-Temperatur | DS18B20 | `0xae00000fba143528` | aktiv, `update_interval: 10s` |
+| Rolle | Sensor | Bridge-ID | ESPHome-Sensor-ID | Datei |
+|---|---|---|---|---|
+| Becken-Temperatur | DS18B20 (ESP32-C3, GPIO1) | `temp_bridge` (0x48) | `sensor_temp_becken` | `hardware.yaml` |
 
-**Sensor-Einbindung (hardware.yaml):** `sensor_temp_becken` läuft als echter `dallas_temp`-Sensor; Thermostat verwendet ihn direkt.
+**Sensor-Einbindung (`hardware.yaml`):** Template-Sensor liest 2 Bytes von 0x48, rechnet `int16_raw / 16.0f`; Thermostat verwendet ihn direkt.
 
 ---
 
@@ -362,7 +378,7 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 - [x] sensorphalanx.yaml: VL53L1X, SHT4x, BMP581, VEML7700, MLX90632
 - [x] `zero_means_zero: true` für Turmpumpe (kein Nachlaufen)
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
-- [ ] `sensor_temp_becken` durch echten Sensor ersetzen
+- [x] `sensor_temp_becken` via DS18B20 I²C-Bridge (`1w_i2c_bridge`, ESP-IDF 5.x) aktiv
 
 ---
 
@@ -531,7 +547,7 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
 - [ ] Einstellungen Tab "System" füllen
 - [ ] Einstellungen Tab "Kühler" füllen
-- [x] `sensor_temp_becken` von Template auf echten DS18B20-Sensor umstellen (ID ausstehend)
+- [x] `sensor_temp_becken` via DS18B20 I²C-Bridge (`1w_i2c_bridge`, ESP-IDF 5.x) aktiv
 
 ---
 
@@ -556,3 +572,4 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 | 2026-03-15 | BLE MAC ermittelt (`dc:da:0c:a1:89:8e`); `sensor_temp_becken` via BTHome v2 aktiviert | `ble.yaml` |
 | 2026-03-15 | I²C-Bridge `temp_bridge` (0x48) + Template-Sensor aus `hardware.yaml` entfernt | `hardware.yaml` |
 | 2026-03-17 | TCA9548A-Mux entfernt; alle sensorphalanx-Sensoren direkt auf `i2c_bus` umgestellt | `sensorphalanx.yaml` |
+| 2026-03-17 | I²C-Bridge (`1w_i2c_bridge`, ESP-IDF 5.x) wieder aktiv; `sensor_temp_becken` liest `temp_bridge` (0x48, 3s); `ble.yaml`-BLE-Sensor abgelöst | `hardware.yaml` |
