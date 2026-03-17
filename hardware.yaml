@@ -1,16 +1,16 @@
 esphome:
   on_boot:
-    priority: -100        # nach LVGL- und Light-Init
-    then:
-      - light.control:
-          id: light_screen_background
-          brightness: 70%
-      - lambda: |-
-          id(brightness_auto_mode) = true;
-          lv_obj_add_state(id(sw_brightness_auto), LV_STATE_CHECKED);
-    priority: -200        # nach allem anderen – Motor in Nullstellung
-    then:
-      - script.execute: script_motor_set_zero
+    - priority: -100        # nach LVGL- und Light-Init
+      then:
+        - light.control:
+            id: light_screen_background
+            brightness: 70%
+        - lambda: |-
+            id(brightness_auto_mode) = true;
+            lv_obj_add_state(id(sw_brightness_auto), LV_STATE_CHECKED);
+    - priority: -200        # nach allem anderen – Motor in Nullstellung
+      then:
+        - script.execute: script_motor_set_zero
 
 # ================================
 # Zeit über SNTP (NTP)
