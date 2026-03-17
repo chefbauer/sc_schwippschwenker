@@ -74,14 +74,6 @@ canbus:
               id(sensor_motor_position_error).publish_state(position_error);
               // ESP_LOGI("candump 39", "%x : %x %x %x %x %x %x %x %x", can_id, int(x[0]), int(x[1]), int(x[2]), int(x[3]), int(x[4]), int(x[5]), int(x[6]), int(x[7])); //1FD047FF   [8]  01 42 32 00 92 E2 00 FF
             }
-            else if (command == 0xF6)  // F6 = Motorbetrieb Speed Mode
-            {
-              if (p1 == 2) //run_completed
-              {
-                id(script_Motor_Nullstellung_VIERTEL).execute();
-              }
-              id(script_motor_get_status).execute();
-            }
             else if (command == 0xF4 || command == 0xFD)  // F4 = Relativ Winkel, FD = relative Pulse
             {
               if (p1 == 1) //run_start
@@ -188,7 +180,7 @@ script:
       #     std::vector<unsigned char> data = add_crc(${motor_can_id}, { 0x30 }); // zusammenfassen geht ned!
       #     id(can_bus)->send_data(${motor_can_id}, false, data);  // GET Winkel
       - lambda: !lambda id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x30 })); // Get Winkel
-      - lambda: !lambda id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x39 })); // Pos. Error
+      # - lambda: !lambda id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x39 })); // Pos. Error
       - script.stop: script_motor_get_winkel  # Self-Kill
 
   - id: script_motor_get_pos_abs_axis

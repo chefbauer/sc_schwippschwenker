@@ -283,9 +283,14 @@ lvgl:
                           - lambda: |-
                               lv_arc_set_value(id(arc_schwenkzeit), (int)(id(sw_halbperiode_ms) / 100));
                               lv_arc_set_value(id(arc_rpm), id(sw_max_speed_rpm));
-                              char b1[8]; snprintf(b1,sizeof(b1),"%.1fs",id(sw_halbperiode_ms)/1000.0f);
+                              // lv_arc_get_value liest den geclamten Arc-Wert → korrigiert auch zu hohe NVS-Werte
+                              int z = lv_arc_get_value(id(arc_schwenkzeit));
+                              int r = lv_arc_get_value(id(arc_rpm));
+                              id(sw_halbperiode_ms) = (uint32_t)(z * 100);
+                              id(sw_max_speed_rpm)  = r;
+                              char b1[8]; snprintf(b1,sizeof(b1),"%.1fs", z / 10.0f);
                               lv_label_set_text(id(lbl_arc_zeit_val), b1);
-                              char b2[6]; snprintf(b2,sizeof(b2),"%d",id(sw_max_speed_rpm));
+                              char b2[6]; snprintf(b2,sizeof(b2),"%d", r);
                               lv_label_set_text(id(lbl_arc_rpm_val), b2);
                           - lvgl.widget.show: overlay_schwenker_settings
                         widgets:
@@ -1382,9 +1387,13 @@ lvgl:
                                   // Arcs auf aktuelle Werte setzen beim Öffnen
                                   lv_arc_set_value(id(arc_schwenkzeit), (int)(id(sw_halbperiode_ms) / 100));
                                   lv_arc_set_value(id(arc_rpm), id(sw_max_speed_rpm));
-                                  char b1[8]; snprintf(b1,sizeof(b1),"%.1fs",id(sw_halbperiode_ms)/1000.0f);
+                                  int z = lv_arc_get_value(id(arc_schwenkzeit));
+                                  int r = lv_arc_get_value(id(arc_rpm));
+                                  id(sw_halbperiode_ms) = (uint32_t)(z * 100);
+                                  id(sw_max_speed_rpm)  = r;
+                                  char b1[8]; snprintf(b1,sizeof(b1),"%.1fs", z / 10.0f);
                                   lv_label_set_text(id(lbl_arc_zeit_val), b1);
-                                  char b2[6]; snprintf(b2,sizeof(b2),"%d",id(sw_max_speed_rpm));
+                                  char b2[6]; snprintf(b2,sizeof(b2),"%d", r);
                                   lv_label_set_text(id(lbl_arc_rpm_val), b2);
                               - lvgl.widget.show: overlay_schwenker_settings
 
