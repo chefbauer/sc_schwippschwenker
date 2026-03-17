@@ -175,10 +175,9 @@ script:
     parameters:
       slot: int
     then:
-      # Aktuelle Position frisch abrufen
+      # Closed Loop für präzise Fahrt
       - lambda: |-
-          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x30 }));
-      - delay: 100ms
+          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x82, 0x04 }));  // Closed Loop
       # Relative Fahrt zur Zielposition
       - lambda: |-
           float current_raw = id(sensor_motor_position).state;
