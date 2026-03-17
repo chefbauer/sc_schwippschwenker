@@ -8,6 +8,10 @@ esphome:
       - lambda: |-
           id(brightness_auto_mode) = true;
           lv_obj_add_state(id(sw_brightness_auto), LV_STATE_CHECKED);
+  on_boot:
+    priority: -200        # nach allem anderen – Motor in Nullstellung
+    then:
+      - script.execute: script_motor_set_zero
 
 # ================================
 # Zeit über SNTP (NTP)

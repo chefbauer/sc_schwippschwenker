@@ -206,3 +206,34 @@ button:
           } else {
             id(script_schwenker_start).execute();
           }
+
+# ============================================================
+# Script – Schwenker fährt zu einem der 6 Slot-Positionen
+# ============================================================
+#   Slot 1 = 0°, Slot 2 = 60°, Slot 3 = 120°,
+#   Slot 4 = 180°, Slot 5 = 240°, Slot 6 = 300°
+#
+#   Nutzt sensor_motor_position (14-bit, 0–16383 = 0–360°) für den
+#   kürzesten Weg.  Falls Sensor noch kein gültiges Reading liefert
+#   (NaN), wird der Aufruf ignoriert.
+# ============================================================
+script:
+  - id: script_schwenker_goto_slot
+    parameters:
+      slot: int
+    then:
+      - lambda: |-
+          float current_raw = id(sensor_motor_position).state;
+          if (isnan(current_raw)) {
+            ESP_LOGW("schwenker", "goto_slot: sensor_motor_position NaN – Abbruch");
+            return;
+          }
+          float current_deg = current_raw / 16384.0f * 360.0f;
+          float target_deg  = (float)(slot - 1) * 60.0f;  // 1=0°, 2=60° …6=300°
+          float rel         = target_deg - current_deg;
+          // Kürzesten Weg wählen (±180°)
+          while (rel >  180.0f) rel -= 360.0f;
+          while (rel < -180.0f) rel += 360.0f;
+          ESP_LOGI("schwenker", "goto_slot %d  target=%.1f°  aktuell=%.1f°  rel=%.1f°",
+                   slot, target_deg, current_deg, rel);
+          id(script_motor_goto_relative_degree)->execute(60, 150, rel);

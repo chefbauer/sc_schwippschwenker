@@ -178,8 +178,9 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 
 **Jeder Slot ist ein `button`** (290×120 px, radius=16, clip_corner=true, bg_opa=TRANSP):
 
-- **Linker Tab** (50×100%, `clickable: false`): volle Slot-Farbe, Slot-Nummer zentriert
-- **Rechter Bereich** (240×100%, `clickable: false`): 50% Opacity, enthält:
+- **Linker Tab** (60×100%, `clickable: true`): volle Slot-Farbe, Slot-Nummer zentriert  
+  `on_click` → `script_schwenker_goto_slot->execute(N)` (N=1–6, Zielwinkel = (N-1)×60°)
+- **Rechter Bereich** (230×100%, `clickable: false`): 50% Opacity, enthält:
   - Label "Timer:" oben links
   - Zeitanzeige `MM:SS` darunter (`font_timer`)
   - Play/Pause-Icon rechtsbündig (x=-17)
@@ -367,8 +368,9 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 - [x] Interval 500ms (alle 6 Slots + AMG-Overlay-Update)
 - [x] Hauptseite Titel + Tank-Widget + 6 Farbslots
 - [x] Statusleiste mit Kompressor-Icon (dynamische Farbe)
-- [x] Einstellungen: Tab-Reihenfolge System · Bildschirm · Kühler · Test
+- [x] Einstellungen: Tab-Reihenfolge System · **Schwenker** · Bildschirm · Kühler · Test
 - [x] Tab System: Overlay-Buttons (AMG8833 Live, Sensor-Phalanx)
+- [x] Tab Schwenker: "Motor freigeben" (Mode 3) + "Motor 0° setzen" (script_motor_set_zero)
 - [x] Tab Bildschirm: Helligkeit-Slider + Farbtest-Quadrate
 - [x] Tab Kühler: Kühlung-Switch + Temperatur-Slider + Preset-Buttons
 - [x] Tab Test: Turmpumpe-Slider + Beckenpumpe-Slider
@@ -381,6 +383,10 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
 - [x] `sensor_temp_becken` via DS18B20 I²C-Bridge (`1w_i2c_bridge`, ESP-IDF 5.x) aktiv
 - [x] `schwenker.yaml`: Sinus-Pendel via F5 + "fernes Ziel" (MKS Servo42D)
+- [x] `script_schwenker_goto_slot(slot)`: fährt Motor zu Slot-Position (Slot 1=0°…Slot 6=300°)
+- [x] `on_boot priority:-200`: Motor fährt auf 0° (script_motor_set_zero)
+- [x] `schwenker_ring` Hintergrundfarbe hellblau (#2299CC)
+- [x] Slot-Tabs: 60px breit (war 50px), anklickbar → Schwenker-Navigation
 
 ---
 
@@ -397,19 +403,32 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 | `sw_phase_ms` | uint32_t | 0 | Fortschritt in aktueller Halbperiode |
 | `sw_halbperiode_ms` | uint32_t | 3000 | Zeit pro Richtung (ms) |
 | `sw_max_speed_rpm` | int | 15 | Spitzengeschwindigkeit |
-| `sw_anchor_abs_pos` | int32_t | 0 | Ankerpunkt (gesetzt beim Start via 0x31) |
+| `sw_acc` | int | 200 | Internes Ramping 1–254 (Motor interpoliert Stufen) |
 
 **Takt (50ms):**
 - `speed = max_rpm * sin(π * phase_ms / T_half)` → 0→max→0 pro Halbperiode
-- F5-Paket: `{ 0xF5, spd_H, spd_L, 0xFF, pos_HH, pos_H, pos_L }` mit `pos = anchor ± 1.000.000`
-- Motor erreicht das Ziel nie (bei 15 RPM macht er ~200 Schritte/50ms vs. 1.000.000 Offset)
+- F5-Paket (verifiziert): `{ 0xF5, spd_H, spd_L, acc, pos_HH, pos_H, pos_L }`, absAxis = ±8.000.000
+- Motor erreicht das Ziel nie (bei 15 RPM macht er ~200 Schritte/50ms vs. 8.000.000 Offset)
 - Am Periodenende: `sw_richtung *= -1`, Phase zurück auf 0
 
-**Scripts:** `script_schwenker_start` / `script_schwenker_stop`
-**Button:** `btn_schwenker_toggle` (Start/Stop Toggle)
+**Scripts:**
 
-> ⚠ F5-Byte-Format ist eine Annahme (analog F4). Am Motor verifizieren!  
-> Ggf. 4-Byte-Position nötig falls Motor 32-bit absolute Position erwartet.
+| Script | Beschreibung |
+|---|---|
+| `script_schwenker_start` | Motor-Init (Mode 4, 64 Steps, 2000mA, idle min) → Sinus starten |
+| `script_schwenker_stop` | Sinus stoppen → Mode 5 (FOC, kein Haltestrom) → F5 speed=0 |
+| `script_system_ein` | system_ein=true → Power-Button grün → Thermostat COOL |
+| `script_system_aus` | system_ein=false → Power-Button rot → Schwenker stopp → Thermostat OFF → Pumpen aus |
+| `script_schwenker_goto_slot` | Fährt Motor zu Slot-Position (kürzester Weg via sensor_motor_position) |
+
+**Slot-Positionsnavigation (`script_schwenker_goto_slot`):**
+- Parameter: `slot` (int, 1–6)
+- Zielwinkel: `(slot - 1) × 60°` → Slot 1=0°, Slot 2=60°, …, Slot 6=300°
+- Liest `sensor_motor_position` (14-bit, 0–16383 = 0–360°), berechnet kürzesten Relativweg (±180°)
+- Ruft `script_motor_goto_relative_degree(60 RPM, 150 acc, rel_deg)` auf
+- Bricht bei NaN-Sensor-Wert ab (ESP_LOGW)
+
+**Button:** `btn_schwenker_toggle` (Start/Stop Toggle)
 
 ---
 
@@ -452,6 +471,13 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 | 2026-03-10 (session) | — | Overlays-Buttons von Test-Tab nach Einstellungen/System verschoben |
 | 2026-03-10 (session) | — | Fonts: `·` (U+00B7) und `–` (U+2013) zu font_normal + font_small ergänzt |
 | 2026-03-10 (session) | — | `zero_means_zero: true` für output_pumpe_dacA (kein Nachlaufen bei Slider=0) |
+| 2026-03-10 (session) | — | Tank-Widget ersetzt durch runden Schwenker-Button (196×196px, grau/grün), schwenker_ring hellblau |
+| 2026-03-10 (session) | — | System-Hauptschalter `btn_system_power` (80×80px, rot/grün, oben rechts) |
+| 2026-03-10 (session) | — | scripts: system_ein/system_aus; font_icon_xl (120px FA U+F021); font_icons +U+F011 |
+| 2026-03-10 (session) | — | Einstellungen: neuer Tab "Schwenker" (Pos. 2): "Motor freigeben" + "Motor 0° setzen" |
+| 2026-03-10 (session) | — | Slot-Tabs: 50→60px, clickable+on_click → script_schwenker_goto_slot(N); Timer-Areas 240→230px |
+| 2026-03-10 (session) | — | schwenker.yaml: script_schwenker_goto_slot (Slot 1=0°…6=300°, kürzester Weg) |
+| 2026-03-10 (session) | — | hardware.yaml: on_boot priority:-200 → script_motor_set_zero (Motor auf 0°) |
 
 
 ---
@@ -501,8 +527,9 @@ Anordnung im Uhrzeigersinn nach Farbrad:
 
 **Jeder Slot ist ein `button`** (290×120 px, radius=16, clip_corner=true, bg_opa=TRANSP):
 
-- **Linker Tab** (50×100%, `clickable: false`): volle Slot-Farbe, Slot-Nummer zentriert
-- **Rechter Bereich** (240×100%, `clickable: false`): 50% Opacity, enthält:
+- **Linker Tab** (60×100%, `clickable: true`): volle Slot-Farbe, Slot-Nummer zentriert  
+  `on_click` → `script_schwenker_goto_slot->execute(N)` (N=1–6, Zielwinkel = (N-1)×60°)
+- **Rechter Bereich** (230×100%, `clickable: false`): 50% Opacity, enthält:
   - Label "Timer:" oben links
   - Zeitanzeige `MM:SS` darunter
   - Play/Pause-Icon rechtsbündig (x=-17)
