@@ -796,15 +796,15 @@ sensor:
             const float HS_x = 25.0f;    // halbe Label-Breite (~50px/2)
             const float HS_y = 32.0f;    // Baseline-Korrektur: Noto-Font Ascender ~75%
             lv_obj_t* markers[6] = {
-              id(lbl_ring_slot1), id(lbl_ring_slot2), id(lbl_ring_slot3),
-              id(lbl_ring_slot4), id(lbl_ring_slot5), id(lbl_ring_slot6)
+              id(ring_slot1_marker), id(ring_slot2_marker), id(ring_slot3_marker),
+              id(ring_slot4_marker), id(ring_slot5_marker), id(ring_slot6_marker)
             };
             for (int i = 0; i < 6; i++) {
               // -motor_deg: Marker drehen entgegen Motorrichtung (physische Karussell-Logik)
               float a = (-motor_deg + (float)(i * 60) + 180.0f) * (float)M_PI / 180.0f;
               lv_obj_set_pos(markers[i],
-                (lv_coord_t)(CX + R * sinf(a) - HS_x),
-                (lv_coord_t)(CY - R * cosf(a) - HS_y));
+                (lv_coord_t)(CX + R * sinf(a) - 25.0f),
+                (lv_coord_t)(CY - R * cosf(a) - 25.0f));
             }
 
   - platform: template

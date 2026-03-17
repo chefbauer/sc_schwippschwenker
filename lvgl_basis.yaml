@@ -82,13 +82,6 @@ font:
     glyphs:
       - "\uF021"  # arrows-rotate (Drehsymbol)
 
-  # Kreiszahlen ❶–❻ (U+2776–277B, Dingbats-Block) für Slot-Marker im Schwenker-Ring
-  - file: "gfonts://Noto+Sans+Symbols@400"
-    id: font_slot_rings
-    size: 50
-    bpp: 4
-    glyphs: "\u2776\u2777\u2778\u2779\u277A\u277B"  # ❶❷❸❹❺❻
-
 # Timer-Globals für alle 6 Slots
 # Status: 0=gestoppt  1=läuft  2=pausiert
 globals:
@@ -284,63 +277,121 @@ lvgl:
                               text: "\uF021"
                               text_font: font_icon_xl
                               text_color: 0xFFFFFF
-                    # ── Slot-Marker: rotieren mit Motor-Winkel (20x/s via on_value) ──
-                    # Slot 1 startet bei 6-Uhr (unten), Motor-Winkel 0°
-                    # Positionen: Motor=0 → Slot1 unten, Slot4 oben, Slot2/6 links unten/oben usw.
-                    - label:
-                        id: lbl_ring_slot1
-                        text: "\u2776"
-                        text_font: font_slot_rings
-                        text_color: 0xFF5555
-                        bg_opa: TRANSP
+                    # ── Slot-Marker: Kreise mit Slot-Farben, rotieren mit Motor-Winkel ──
+                    - obj:
+                        id: ring_slot1_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x882222
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0xFF0000
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 155
                         y: 285
-                    - label:
-                        id: lbl_ring_slot2
-                        text: "\u2777"
-                        text_font: font_slot_rings
-                        text_color: 0xCCCC00
-                        bg_opa: TRANSP
+                        widgets:
+                          - label:
+                              text: "1"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0xFFFFFF
+                    - obj:
+                        id: ring_slot2_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x887700
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0xFFFF00
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 42
                         y: 220
-                    - label:
-                        id: lbl_ring_slot3
-                        text: "\u2778"
-                        text_font: font_slot_rings
-                        text_color: 0x44DD44
-                        bg_opa: TRANSP
+                        widgets:
+                          - label:
+                              text: "2"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0x000000
+                    - obj:
+                        id: ring_slot3_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x228822
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0x00FF00
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 42
                         y: 90
-                    - label:
-                        id: lbl_ring_slot4
-                        text: "\u2779"
-                        text_font: font_slot_rings
-                        text_color: 0x00CCCC
-                        bg_opa: TRANSP
+                        widgets:
+                          - label:
+                              text: "3"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0x000000
+                    - obj:
+                        id: ring_slot4_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x228888
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0x00FFFF
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 155
                         y: 25
-                    - label:
-                        id: lbl_ring_slot5
-                        text: "\u277A"
-                        text_font: font_slot_rings
-                        text_color: 0x6666FF
-                        bg_opa: TRANSP
+                        widgets:
+                          - label:
+                              text: "4"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0x000000
+                    - obj:
+                        id: ring_slot5_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x222288
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0x0000FF
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 268
                         y: 90
-                    - label:
-                        id: lbl_ring_slot6
-                        text: "\u277B"
-                        text_font: font_slot_rings
-                        text_color: 0xFF55FF
-                        bg_opa: TRANSP
+                        widgets:
+                          - label:
+                              text: "5"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0xFFFFFF
+                    - obj:
+                        id: ring_slot6_marker
+                        width: 50
+                        height: 50
+                        radius: 25
+                        bg_color: 0x882288
+                        bg_opa: COVER
+                        border_width: 4
+                        border_color: 0xFF00FF
+                        pad_all: 0
                         align: TOP_LEFT
                         x: 268
                         y: 220
+                        widgets:
+                          - label:
+                              text: "6"
+                              align: CENTER
+                              text_font: font_normal
+                              text_color: 0xFFFFFF
 
               # ---- Slot-Container links: Slot 1 (R), 2 (Y), 3 (G) ----
               - obj:
@@ -1235,6 +1286,40 @@ lvgl:
                                         id: output_pumpe_dacB
                                         level: !lambda "return x / 100.0;"
 
+                        # Zeile: Motor Reboot (Soll=Ist Sync, bei versehentlich verdrehäm Neustart)
+                        - obj:
+                            id: row_motor_reboot
+                            width: 960
+                            height: 70
+                            align: TOP_MID
+                            y: 290
+                            bg_opa: TRANSP
+                            border_width: 0
+                            scrollable: false
+                            scrollbar_mode: "off"
+                            widgets:
+                              - label:
+                                  text: "Motor:"
+                                  align: LEFT_MID
+                                  x: 10
+                                  text_font: font_normal
+                                  text_color: 0x000000
+                              - button:
+                                  id: btn_motor_reboot
+                                  width: 220
+                                  height: 60
+                                  align: LEFT_MID
+                                  x: 200
+                                  bg_color: 0x884422
+                                  widgets:
+                                    - label:
+                                        text: "Motor Reboot"
+                                        align: CENTER
+                                        text_font: font_normal
+                                        text_color: 0xFFFFFF
+                                  on_click:
+                                    - script.execute: script_motor_reboot
+
                         # Build-Nummer (zum Verifizieren ob neue Firmware aktiv ist)
                         - label:
                             id: lbl_build_number
@@ -1300,6 +1385,70 @@ lvgl:
                                         text_color: 0xFFFFFF
                                   on_click:
                                     - script.execute: script_motor_set_zero
+
+                        # Zeile: Trim-Slider ±45° → Motor folgt live; loslassen setzt 0°
+                        - obj:
+                            id: row_trim_slider
+                            width: 960
+                            height: 80
+                            align: TOP_MID
+                            y: 110
+                            bg_opa: TRANSP
+                            border_width: 0
+                            scrollable: false
+                            scrollbar_mode: "off"
+                            widgets:
+                              - label:
+                                  text: "0\u00B0 setzen:"
+                                  align: LEFT_MID
+                                  x: 10
+                                  text_font: font_normal
+                                  text_color: 0x000000
+                              - label:
+                                  text: "-45\u00B0"
+                                  align: LEFT_MID
+                                  x: 190
+                                  text_font: font_small
+                                  text_color: 0x888888
+                              - label:
+                                  text: "+45\u00B0"
+                                  align: RIGHT_MID
+                                  x: -10
+                                  text_font: font_small
+                                  text_color: 0x888888
+                              - slider:
+                                  id: slider_trim_motor
+                                  width: 580
+                                  height: 30
+                                  align: LEFT_MID
+                                  x: 240
+                                  min_value: -45
+                                  max_value: 45
+                                  value: 0
+                                  on_value:
+                                    - lambda: |-
+                                        int new_val = x;
+                                        int delta = new_val - id(slider_trim_last);
+                                        if (delta != 0) {
+                                          uint8_t speed_h = 0;       // 60 RPM
+                                          uint8_t speed_l = 60;
+                                          uint8_t accel   = 80;
+                                          int32_t steps = (int32_t)lround((16384.0 / 360.0) * (double)delta);
+                                          uint32_t v24 = (uint32_t)steps & 0x00FFFFFFu;
+                                          uint8_t pr_hh = (v24 >> 16) & 0xFF;
+                                          uint8_t pr_h  = (v24 >>  8) & 0xFF;
+                                          uint8_t pr_l  =  v24        & 0xFF;
+                                          id(can_bus)->send_data(${motor_can_id}, false,
+                                            add_crc(${motor_can_id}, { 0xF4, speed_h, speed_l, accel, pr_hh, pr_h, pr_l }));
+                                          id(slider_trim_last) = new_val;
+                                        }
+                                  on_release:
+                                    - lambda: |-
+                                        id(slider_trim_last) = 0;
+                                    - script.execute: script_motor_set_zero
+                                    - lvgl.slider.update:
+                                        id: slider_trim_motor
+                                        value: 0
 
                     # Tab 3: Bildschirm
                     - name: "Bildschirm"

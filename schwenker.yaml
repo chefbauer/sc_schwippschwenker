@@ -64,6 +64,11 @@ globals:
     initial_value: '200'        # 1–254: Motor interpoliert intern (glättet 50ms-Stufen)
                                 # 0 oder 255: kein internes Ramping → Ruck bei Stufen!
 
+  - id: slider_trim_last       # merkt sich den letzten Slider-Wert für Delta-Berechnung
+    type: int
+    restore_value: no
+    initial_value: '0'
+
 # ============================================================
 # Scripts
 # ============================================================
@@ -111,6 +116,13 @@ script:
           uint8_t p_l   = (uint8_t)( val         & 0xFF);
           id(can_bus)->send_data(${motor_can_id}, false,
               add_crc(${motor_can_id}, { 0xF5, 0x00, 0x00, acc, p_hh, p_h, p_l }));
+      - delay: 300ms
+      - script.execute:
+          id: script_motor_set_work_current_mA
+          current_mA: 500   // nach Stopp: geringer Haltestrom → Motor drehbar, aber nicht frei
+      - script.execute:
+          id: script_motor_set_idle_current_perc
+          current_perc: 10
 
   # ── Schwenker fährt zu einem der 6 Slot-Positionen ───────
   #   Slot 1 = 0°, Slot 2 = 60°, Slot 3 = 120°,
@@ -119,23 +131,17 @@ script:
     parameters:
       slot: int
     then:
+      # Aktuelle Position frisch abrufen
+      - lambda: |-
+          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x30 }));
+      - delay: 100ms
+      # Relative Fahrt zur Zielposition
       - lambda: |-
           float current_raw = id(sensor_motor_position).state;
           if (isnan(current_raw)) {
             ESP_LOGW("schwenker", "goto_slot: sensor_motor_position NaN – Abbruch");
             return;
           }
-          // Motor-Init: gleiche Konfiguration wie beim Schwenken (Closed Loop, 64 Steps, 2000 mA, idle min)
-          std::vector<unsigned char> data;
-          data = add_crc(${motor_can_id}, { 0x82, 0x04 });        // MODE: Closed Loop
-          id(can_bus)->send_data(${motor_can_id}, false, data);
-          data = add_crc(${motor_can_id}, { 0x84, 0x40 });        // MSTEP: 64 subdivisions
-          id(can_bus)->send_data(${motor_can_id}, false, data);
-          data = add_crc(${motor_can_id}, { 0x83, 0x07, 0xD0 });  // Work current: 2000 mA
-          id(can_bus)->send_data(${motor_can_id}, false, data);
-          data = add_crc(${motor_can_id}, { 0x9B, 0x00 });        // Idle current: param 0 = min
-          id(can_bus)->send_data(${motor_can_id}, false, data);
-
           float current_deg = current_raw / 16384.0f * 360.0f;
           float target_deg  = (float)(slot - 1) * 60.0f;  // 1=0°, 2=60° …6=300°
           float rel         = target_deg - current_deg;
@@ -144,14 +150,37 @@ script:
           while (rel < -180.0f) rel += 360.0f;
           ESP_LOGI("schwenker", "goto_slot %d  target=%.1f°  aktuell=%.1f°  rel=%.1f°",
                    slot, target_deg, current_deg, rel);
-          // 8 RPM + acc 50: langsam und sanft im Wasser (+50% vs. orig. 5 RPM)
+          // 8 RPM + acc 50: langsam und sanft im Wasser
           id(script_motor_goto_relative_degree)->execute(8, 50, rel);
-      # Wartezeit: lange genug für die Fahrt (max. Weg ≈ 180° bei 5 RPM ≈ ~6 s)
-      - delay: 7000ms
+      # Wartezeit: lange genug für die Fahrt (max. Weg ≈ 180° bei 8 RPM ≈ ~4 s)
+      - delay: 5000ms
       - lambda: |-
-          // Nach der Fahrt: FOC-Modus → kein Haltestrom im Stillstand
+          // Nach der Fahrt: Arbeitsstrom reduzieren, FOC-Modus
           id(can_bus)->send_data(${motor_can_id}, false,
               add_crc(${motor_can_id}, { 0x82, 0x05 }));
+
+  # ── Motor Soft-Reboot (Soll = Ist, manuell aus Einstellungen) ──────────
+  - id: script_motor_reboot
+    mode: single
+    then:
+      - lambda: |-
+          ESP_LOGI("schwenker", "Motor Soft-Reboot (0x41) – Soll=Ist sync");
+          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x41 }));
+      - delay: 2500ms   # Motor braucht ~2 s zum Hochfahren
+      # Re-Init: Closed-Loop, 64 Steps, 2000 mA, Respond ON
+      - lambda: |-
+          std::vector<unsigned char> data;
+          data = add_crc(${motor_can_id}, { 0x82, 0x04 });        // MODE: Closed Loop
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x84, 0x40 });        // MSTEP: 64 subdivisions
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x83, 0x07, 0xD0 });  // Work current: 2000 mA
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x9B, 0x00 });        // Idle current: min
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          data = add_crc(${motor_can_id}, { 0x8C, 0x01, 0x01 });  // Respond ON
+          id(can_bus)->send_data(${motor_can_id}, false, data);
+          ESP_LOGI("schwenker", "Motor Re-Init abgeschlossen");
 
   # ── System EIN ───────────────────────────────────────────
   - id: script_system_ein
