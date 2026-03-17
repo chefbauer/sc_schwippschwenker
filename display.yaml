@@ -18,6 +18,7 @@ substitutions:
   fan_kompressor_max_perc: 92
 
   master_can_id: 1
+  motor_can_id: "3"
 
   
   c_pumpe_umwaelzung_ein_perc: 30
