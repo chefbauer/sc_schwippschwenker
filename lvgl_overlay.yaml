@@ -142,6 +142,7 @@ lvgl:
                       min_value: 10      # = 1.0 s
                       max_value: 100     # = 10.0 s
                       value: 32          # = 3.2 s (default)
+                      adjustable: true
                       arc_color: 0x2299FF
                       arc_width: 18
                       indicator:
@@ -162,8 +163,8 @@ lvgl:
                       id: lbl_arc_zeit_val
                       text: "3.2s"
                       align: TOP_MID
-                      y: 148
-                      text_font: font_temp
+                      y: 140
+                      text_font: font_arc_val
                       text_color: 0x0077CC
                       text_align: CENTER
 
@@ -196,6 +197,7 @@ lvgl:
                       min_value: 1
                       max_value: 20
                       value: 4           # default
+                      adjustable: true
                       arc_color: 0x226622
                       arc_width: 18
                       indicator:
@@ -216,8 +218,8 @@ lvgl:
                       id: lbl_arc_rpm_val
                       text: "4"
                       align: TOP_MID
-                      y: 148
-                      text_font: font_temp
+                      y: 140
+                      text_font: font_arc_val
                       text_color: 0x226644
                       text_align: CENTER
                   - label:

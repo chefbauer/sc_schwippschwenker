@@ -74,6 +74,13 @@ font:
     bpp: 1
     glyphs: "0123456789:"
 
+  # Arc-Wert-Font (Schwenker-Overlay, groß)
+  - file: "gfonts://Roboto@400"
+    id: font_arc_val
+    size: 56
+    bpp: 4
+    glyphs: "0123456789.s "
+
   # Großes Drehsymbol für Schwenker-Button (Font Awesome arrows-rotate U+F021)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"
     id: font_icon_xl
