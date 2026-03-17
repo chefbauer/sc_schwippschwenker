@@ -34,6 +34,7 @@ Ausgelegt für **Dosen und Flaschen** — durch das Drehen wird die Kühlleistun
 `lvgl_overlay.yaml` enthält alle Top-Layer Overlays.  
 `hardware.yaml` enthält Sensoren, Outputs, MCP4728, Climate, AMG8833.  
 `sensorphalanx.yaml` enthält die externe Sensor-Gruppe (MLX90632, VL53L1X, SHT4x, BMP581, VEML7700).  
+`schwenker.yaml` enthält Sinus-Pendel-Steuerung via F5 (MKS Servo42D CAN-Bus).  
 **Nur in lvgl_basis/overlay generieren:** `font:`, `globals:`, `interval:`, `lvgl:`  
 **Nicht generieren:** sonstiger ESPHome-Code (sensors, lights, etc.)
 
@@ -379,6 +380,36 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 - [x] `zero_means_zero: true` für Turmpumpe (kein Nachlaufen)
 - [ ] Tank-Platzhalter durch echtes PNG ersetzen
 - [x] `sensor_temp_becken` via DS18B20 I²C-Bridge (`1w_i2c_bridge`, ESP-IDF 5.x) aktiv
+- [x] `schwenker.yaml`: Sinus-Pendel via F5 + "fernes Ziel" (MKS Servo42D)
+
+---
+
+## Schwenker (`schwenker.yaml`)
+
+### Prinzip: F5 + "Fernes Ziel" + Sinus-Hüllkurve
+
+**Methode:** `F5` (Abs. Positionsmodus, Echtzeit-Updates laut Doku) mit "nie erreichbarem Ziel"
+
+| Global-ID | Typ | Default | Bedeutung |
+|---|---|---|---|
+| `sw_aktiv` | bool | false | Schwenker läuft |
+| `sw_richtung` | int | +1 | +1 = CW, -1 = CCW |
+| `sw_phase_ms` | uint32_t | 0 | Fortschritt in aktueller Halbperiode |
+| `sw_halbperiode_ms` | uint32_t | 3000 | Zeit pro Richtung (ms) |
+| `sw_max_speed_rpm` | int | 15 | Spitzengeschwindigkeit |
+| `sw_anchor_abs_pos` | int32_t | 0 | Ankerpunkt (gesetzt beim Start via 0x31) |
+
+**Takt (50ms):**
+- `speed = max_rpm * sin(π * phase_ms / T_half)` → 0→max→0 pro Halbperiode
+- F5-Paket: `{ 0xF5, spd_H, spd_L, 0xFF, pos_HH, pos_H, pos_L }` mit `pos = anchor ± 1.000.000`
+- Motor erreicht das Ziel nie (bei 15 RPM macht er ~200 Schritte/50ms vs. 1.000.000 Offset)
+- Am Periodenende: `sw_richtung *= -1`, Phase zurück auf 0
+
+**Scripts:** `script_schwenker_start` / `script_schwenker_stop`
+**Button:** `btn_schwenker_toggle` (Start/Stop Toggle)
+
+> ⚠ F5-Byte-Format ist eine Annahme (analog F4). Am Motor verifizieren!  
+> Ggf. 4-Byte-Position nötig falls Motor 32-bit absolute Position erwartet.
 
 ---
 
@@ -389,6 +420,7 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 | 2026-03-07 07:52 | `b6e12e6` | Initial commit – Projektstruktur angelegt |
 | 2026-03-07 08:05 | `d600b37` | Projektstart: Grundstruktur lvgl_basis.yaml |
 | 2026-03-07 08:12 | `5b73e94` | Helligkeit-Slider in Einstellungen |
+| 2026-03-17 (session) | — | `schwenker.yaml` angelegt: Sinus-Pendel via F5, Globals, 50ms-Interval, Start/Stop-Button |
 | 2026-03-07 08:23–09:25 | `cade272–65a0d82` | Iterative Aufbauphase: Display-Grundkonfiguration, Fonts, Seitenstruktur |
 | 2026-03-07 10:32 | `3b1def5` | Hintergrundfarben angepasst |
 | 2026-03-07 10:59–11:05 | `3ff4856–e01e12f` | Becken-Tank-Widget (Zylinder-Illusion) |

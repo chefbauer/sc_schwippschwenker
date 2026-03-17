@@ -405,7 +405,7 @@ script:
       #     unsigned char current_h = 0x03;  // High-Byte von 800 (0x0320)
       #     unsigned char current_l = 0x20;  // Low-Byte von 800 (0x0320)
       #     std::vector<uint8_t> data = add_crc(can_id, {0xA3, 0x00, current_h, current_l});    // ?????
-      #     id(can_bus)->send_data(can_id, use_extended_id, data);
+      #     id(can_bus)->send_data(can_id,z.B. use_extended_id, data);
 
       - script.execute:
           id: script_motor_set_work_current_mA
