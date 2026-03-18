@@ -96,6 +96,12 @@ globals:
     restore_value: false
     initial_value: '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}'
 
+  # Kompressorschutz: zählt als Startwunsch während der 120s-Boot-Sperrzeit
+  - id: kompressor_soll_ein
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 sensor:
   # Becken-Temperatursensor DS18B20 via I²C-Bridge (ESP32-C3, Adresse 0x48)
   - platform: template
@@ -225,7 +231,15 @@ climate:
     cool_deadband: 0.9 °C
     cool_overrun: 0.1 °C
     cool_action:
-      - output.turn_on: output_kompressor_relais
+      - lambda: |-
+          id(kompressor_soll_ein) = true;
+          if (millis() >= 120000) {
+            id(output_kompressor_relais).turn_on();
+          } else {
+            id(script_kompressor_delayed_start).execute();
+            ESP_LOGI("kompressor", "Schutz aktiv – Start verzögert (%.0f s verbleibend)",
+                     (120000.0f - millis()) / 1000.0f);
+          }
       - output.set_level:
           id: output_luefter_kompressor_pwm
           level: "${fan_kompressor_max_perc}%"
@@ -236,6 +250,9 @@ climate:
           lv_slider_set_value(id(slider_umwaelzpumpe), ${c_pumpe_umwaelzung_ein_perc}, LV_ANIM_OFF);
     idle_action:
       - output.turn_off: output_kompressor_relais
+      - lambda: |-
+          id(kompressor_soll_ein) = false;
+          id(script_kompressor_delayed_start).stop();
       - output.set_level:
           id: output_luefter_kompressor_pwm
           level: "${fan_kompressor_min_perc}%"
@@ -289,3 +306,18 @@ climate:
       - lambda: |-
           // Umwälzpumpe-Slider: kein automatischer Reset – Slider bleibt manuell verstellbar
           // Sync erfolgt nur bei Kompressor-Start (cool_action) und -Stop (idle_action)
+
+script:
+  # Verzögerter Kompressor-Start: wartet bis 120s ab Boot verstrichen, dann startet nur
+  # wenn kein AUS-Befehl zwischenzeitlich kam (kompressor_soll_ein = false)
+  - id: script_kompressor_delayed_start
+    mode: single
+    then:
+      - delay: !lambda "return (millis() < 120000) ? (120000 - (uint32_t)millis()) : 0;"
+      - lambda: |-
+          if (id(kompressor_soll_ein)) {
+            id(output_kompressor_relais).turn_on();
+            ESP_LOGI("kompressor", "Verzögerter Start – Schutzzeit abgelaufen");
+          } else {
+            ESP_LOGI("kompressor", "Verzögerter Start abgebrochen (AUS kam zuerst)");
+          }

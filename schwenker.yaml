@@ -244,39 +244,39 @@ script:
           id(can_bus)->send_data(${motor_can_id}, false, data);
           ESP_LOGI("schwenker", "Motor Re-Init abgeschlossen");
 
-  # ── Beckenfüllung Kurz (25% → 15% Dauer) ────────────────
+  # ── Beckenfüllung Kurz (20% → 5% Dauer) ──────────────────
   - id: script_pumpe_a_kurz
     mode: restart
     then:
       - lambda: |-
           id(pumpe_a_aktiv) = true;
-          id(output_pumpe_dacA).set_level(0.25f);  // 25% Anlauf
+          id(output_pumpe_dacA).set_level(0.20f);  // 20% Anlauf
           lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x2255CC), 0);
           ESP_LOGI("pumpe", "Beckenfüllung KURZ start");
       - delay: 300ms
       - lambda: |-
-          id(output_pumpe_dacA).set_level(0.15f);  // 15% Dauer
-          lv_slider_set_value(id(slider_turmpumpe), 15, LV_ANIM_OFF);
+          id(output_pumpe_dacA).set_level(0.05f);  // 5% Dauer
+          lv_slider_set_value(id(slider_turmpumpe), 5, LV_ANIM_OFF);
 
-  # ── Beckenfüllung Lang (25% → 15% → 100% → 15% Dauer) ───
+  # ── Beckenfüllung Lang (20% → 15% → 100% → 5% Dauer) ─────
   - id: script_pumpe_a_lang
     mode: restart
     then:
       - lambda: |-
           id(pumpe_a_aktiv) = true;
-          id(output_pumpe_dacA).set_level(0.25f);  // 25% Anlauf
+          id(output_pumpe_dacA).set_level(0.20f);  // 20% Anlauf
           lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x2255CC), 0);
           ESP_LOGI("pumpe", "Beckenfüllung LANG start");
       - delay: 300ms
       - lambda: |-
-          id(output_pumpe_dacA).set_level(0.15f);  // 15%
+          id(output_pumpe_dacA).set_level(0.15f);  // 15% Zwischenphase
       - delay: 2000ms
       - lambda: |-
           id(output_pumpe_dacA).set_level(1.0f);   // 100% Spülen
       - delay: 9000ms
       - lambda: |-
-          id(output_pumpe_dacA).set_level(0.15f);  // 15% Dauer
-          lv_slider_set_value(id(slider_turmpumpe), 15, LV_ANIM_OFF);
+          id(output_pumpe_dacA).set_level(0.05f);  // 5% Dauer
+          lv_slider_set_value(id(slider_turmpumpe), 5, LV_ANIM_OFF);
 
   # ── Beckenfüllung AUS ────────────────────────────────────
   - id: script_pumpe_a_aus
