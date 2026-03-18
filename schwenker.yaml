@@ -369,15 +369,18 @@ script:
           condition:
             lambda: return id(sw_test_aktiv);
           then:
-            # F4-Befehl in aktueller Richtung senden
+            # F4-Protokoll: { 0xF4, spd_H, spd_L, acc, relAxis_HH, relAxis_H, relAxis_L }
+            # relAxis = int24_t signed: positiv = CW, negativ = CCW (Two's Complement)
+            # Richtung über Vorzeichen: sw_test_richtung × winkel → signed steps → maskieren
             - lambda: |-
                 id(sensor_motor_status).publish_state(99);  // sentinel: Fahrt läuft
-                float deg   = (float)id(sw_test_richtung) * id(sw_test_winkel);
                 int   spd   = id(sw_test_speed);
                 int   acc   = id(sw_test_acc);
                 if (acc <= 0 || acc >= 255) acc = 50;
-                int32_t  steps = lround((16384.0 / 360.0) * (double)deg);
-                uint32_t val   = static_cast<uint32_t>(steps) & 0xFFFFFF;
+                double deg  = (double)id(sw_test_richtung) * (double)id(sw_test_winkel);
+                int32_t steps = (int32_t)lround((16384.0 / 360.0) * deg);
+                // int24_t two's complement: negative Werte werden durch Maskierung korrekt
+                uint32_t val = static_cast<uint32_t>(steps) & 0xFFFFFF;
                 uint8_t sh = (uint8_t)(spd >> 8);
                 uint8_t sl = (uint8_t)(spd & 0xFF);
                 uint8_t ah = (uint8_t)acc;
@@ -386,8 +389,8 @@ script:
                 uint8_t hl = (uint8_t)( val         & 0xFF);
                 id(can_bus)->send_data(${motor_can_id}, false,
                     add_crc(${motor_can_id}, { 0xF4, sh, sl, ah, hh, hm, hl }));
-                ESP_LOGI("sw_test", "F4  dir=%+d  %.1f deg  %d RPM  acc=%d",
-                         id(sw_test_richtung), id(sw_test_winkel), spd, acc);
+                ESP_LOGI("sw_test", "F4  %.1f deg  steps=0x%06X  %d RPM  acc=%d",
+                         deg, (unsigned)val, spd, acc);
             # Alle 100 ms F1 abfragen bis Motor stoppt (F1 liefert status==1)
             # WICHTIG: status==2 bedeutet "Motor läuft" (F1-Antwort) UND "F4 completed" (on_frame)
             # → niemals auf status==2 als Abbruchbedingung verlassen, nur auf status==1 warten.
