@@ -390,12 +390,8 @@ script:
                 uint8_t hl = (uint8_t)( val         & 0xFF);
                 id(can_bus)->send_data(${motor_can_id}, false,
                     add_crc(${motor_can_id}, { 0xF4, sh, sl, ah, hh, hm, hl }));
-                ESP_LOGI("sw_test",
-                    "F4 raw: F4 %02X %02X %02X %02X %02X %02X  "
-                    "(deg=%.1f steps=0x%06X spd=%d acc=%d [int=%d uint8=%d])",
-                    sh, sl, ah, hh, hm, hl,
-                    deg, (unsigned)val, spd, acc,
-                    id(sw_test_acc), ah);
+                ESP_LOGI("sw_test", "F4: %.1f deg  spd=%d RPM  acc=%d  steps=0x%06X  raw:[F4 %02X %02X %02X %02X %02X %02X]",
+                    deg, spd, acc, (unsigned)val, sh, sl, ah, hh, hm, hl);
             # 250ms Anlauf-Delay: Motor startet, alle alten CAN-Responses sind abgearbeitet.
             # Erst DANACH Sentinel setzen – so kann kein stale F1 den Sentinel überschreiben.
             - delay: 250ms

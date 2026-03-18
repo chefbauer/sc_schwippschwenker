@@ -639,9 +639,9 @@ lvgl:
                       height: 230
                       align: TOP_MID
                       y: 32
-                      min_value: 1       # × 10 = 10
-                      max_value: 25      # × 10 = 250
-                      value: 5           # × 10 = 50
+                      min_value: 1       # × 5 = 5
+                      max_value: 50      # × 5 = 250
+                      value: 10          # × 5 = 50 (default)
                       adjustable: true
                       arc_color: 0x332200
                       arc_width: 18
@@ -655,9 +655,9 @@ lvgl:
                         radius: 13
                       on_value:
                         - lambda: |-
-                            id(sw_test_acc) = (int)x * 10;
+                            id(sw_test_acc) = (int)x * 5;
                             char buf[8];
-                            snprintf(buf, sizeof(buf), "%d", (int)x * 10);
+                            snprintf(buf, sizeof(buf), "%d", (int)x * 5);
                             lv_label_set_text(id(lbl_test_acc_val), buf);
                   - label:
                       id: lbl_test_acc_val
