@@ -579,7 +579,7 @@ lvgl:
                       align: TOP_MID
                       y: 32
                       min_value: 1
-                      max_value: 20
+                      max_value: 60
                       value: 5
                       adjustable: true
                       arc_color: 0x113355
