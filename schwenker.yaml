@@ -64,6 +64,11 @@ globals:
     restore_value: no
     initial_value: '0'
 
+  - id: pumpe_a_aktiv          # Beckenfüllung aktiv (Pumpe A läuft)
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
   # ── Schwenker-Presets ─────────────────────────────────────
   - id: preset1_hp_ms
     type: uint32_t
@@ -177,7 +182,9 @@ script:
     then:
       # Closed Loop für präzise Fahrt
       - lambda: |-
-          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x82, 0x04 }));  // Closed Loop
+          uint8_t mode_byte = (id(sw_motor_mode) == 1) ? 0x05 : 0x04;
+          id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x82, mode_byte }));
+          ESP_LOGI("schwenker", "goto_slot Modus: %s", id(sw_motor_mode)==1 ? "FOC" : "Closed Loop");
       # Relative Fahrt zur Zielposition
       - lambda: |-
           float current_raw = id(sensor_motor_position).state;
@@ -225,6 +232,48 @@ script:
           id(can_bus)->send_data(${motor_can_id}, false, data);
           ESP_LOGI("schwenker", "Motor Re-Init abgeschlossen");
 
+  # ── Beckenfüllung Kurz (25% → 15% Dauer) ────────────────
+  - id: script_pumpe_a_kurz
+    mode: restart
+    then:
+      - lambda: |-
+          id(pumpe_a_aktiv) = true;
+          id(output_pumpe_dacA).set_level(0.25f);  // 25% Anlauf
+          lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x2255CC), 0);
+          ESP_LOGI("pumpe", "Beckenfüllung KURZ start");
+      - delay: 300ms
+      - lambda: |-
+          id(output_pumpe_dacA).set_level(0.15f);  // 15% Dauer
+
+  # ── Beckenfüllung Lang (25% → 15% → 100% → 15% Dauer) ───
+  - id: script_pumpe_a_lang
+    mode: restart
+    then:
+      - lambda: |-
+          id(pumpe_a_aktiv) = true;
+          id(output_pumpe_dacA).set_level(0.25f);  // 25% Anlauf
+          lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x2255CC), 0);
+          ESP_LOGI("pumpe", "Beckenfüllung LANG start");
+      - delay: 300ms
+      - lambda: |-
+          id(output_pumpe_dacA).set_level(0.15f);  // 15%
+      - delay: 2000ms
+      - lambda: |-
+          id(output_pumpe_dacA).set_level(1.0f);   // 100% Spülen
+      - delay: 7000ms
+      - lambda: |-
+          id(output_pumpe_dacA).set_level(0.15f);  // 15% Dauer
+
+  # ── Beckenfüllung AUS ────────────────────────────────────
+  - id: script_pumpe_a_aus
+    mode: restart
+    then:
+      - lambda: |-
+          id(pumpe_a_aktiv) = false;
+          id(output_pumpe_dacA).set_level(0.0f);
+          lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x555555), 0);
+          ESP_LOGI("pumpe", "Beckenfüllung AUS");
+
   # ── System EIN ───────────────────────────────────────────
   - id: script_system_ein
     mode: single
@@ -249,6 +298,8 @@ script:
           call.set_mode("off");
           call.perform();
           id(output_pumpe_dacA).turn_off();
+          id(pumpe_a_aktiv) = false;
+          lv_obj_set_style_bg_color(id(btn_beckenfuellung), lv_color_hex(0x555555), 0);
           id(output_pumpe_dacB).turn_off();
           ESP_LOGI("system", "AUS");
 

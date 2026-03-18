@@ -66,6 +66,7 @@ font:
       - "\uF185"  # Sun (Licht)
       - "\uF05B"  # Crosshairs / Laser (IR)
       - "\uF011"  # Power (Ein/Aus)
+      - "\uF773"  # Water (Beckenfüllung)
 
   # Dot-Matrix Font für Timer-Anzeige
   - file: "fonts/5x7-dot-matrix.ttf"
@@ -241,6 +242,46 @@ lvgl:
                         text_font: font_icons
                         text_color: 0xFFFFFF
               
+              # Beckenfüllungs-Button (rund, rechts unten neben Ring)
+              - button:
+                  id: btn_beckenfuellung
+                  width: 80
+                  height: 80
+                  align: BOTTOM_RIGHT
+                  x: -15
+                  y: -15
+                  radius: 40
+                  bg_color: 0x555555
+                  bg_opa: COVER
+                  border_width: 0
+                  shadow_width: 0
+                  outline_width: 0
+                  pad_all: 0
+                  on_short_click:
+                    - lambda: |-
+                        if (id(pumpe_a_aktiv)) {
+                          id(script_pumpe_a_kurz).stop();
+                          id(script_pumpe_a_lang).stop();
+                          id(script_pumpe_a_aus).execute();
+                        } else {
+                          id(script_pumpe_a_kurz).execute();
+                        }
+                  on_long_press:
+                    - lambda: |-
+                        if (id(pumpe_a_aktiv)) {
+                          id(script_pumpe_a_kurz).stop();
+                          id(script_pumpe_a_lang).stop();
+                          id(script_pumpe_a_aus).execute();
+                        } else {
+                          id(script_pumpe_a_lang).execute();
+                        }
+                  widgets:
+                    - label:
+                        align: CENTER
+                        text: "\uF773"
+                        text_font: font_icons
+                        text_color: 0xFFFFFF
+
               # Schwenker-Steuerung: Großer runder Toggle-Button
               - obj:
                   id: schwenker_ring
