@@ -67,6 +67,7 @@ font:
       - "\uF05B"  # Crosshairs / Laser (IR)
       - "\uF011"  # Power (Ein/Aus)
       - "\uF773"  # Water (Beckenfüllung)
+      - "\uF021"  # arrows-rotate (Schwenker Start/Stop)
 
   # Dot-Matrix Font für Timer-Anzeige
   - file: "fonts/5x7-dot-matrix.ttf"
@@ -80,7 +81,7 @@ font:
     id: font_arc_val
     size: 56
     bpp: 4
-    glyphs: "0123456789.s "
+    glyphs: "0123456789.s% "
 
   # Großes Drehsymbol für Schwenker-Button (Font Awesome arrows-rotate U+F021)
   - file: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.ttf"

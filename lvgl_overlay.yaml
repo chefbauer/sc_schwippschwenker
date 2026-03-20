@@ -150,7 +150,7 @@ lvgl:
                 height: 340
                 align: TOP_LEFT
                 x: 20
-                y: 65
+                y: 145
                 bg_opa: TRANSP
                 border_width: 0
                 scrollable: false
@@ -205,7 +205,7 @@ lvgl:
                 height: 340
                 align: TOP_MID
                 x: 0
-                y: 65
+                y: 145
                 bg_opa: TRANSP
                 border_width: 0
                 scrollable: false
@@ -245,10 +245,10 @@ lvgl:
                             snprintf(buf, sizeof(buf), "%d%%", (int)x);
                             lv_label_set_text(id(lbl_arc_acc_val), buf);
                             const char* shape;
-                            if (x >= 80)      shape = "\xe2\x95\xb1\xe2\x95\xb2";
-                            else if (x >= 55) shape = "\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if (x >= 35) shape = "\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else              shape = "\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if (x >= 80)      shape = "/\\";
+                            else if (x >= 55) shape = "/_\\";
+                            else if (x >= 35) shape = "/___\\";
+                            else              shape = "/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), shape);
                   - label:
                       id: lbl_arc_acc_val
@@ -260,7 +260,7 @@ lvgl:
                       text_align: CENTER
                   - label:
                       id: lbl_trapez_shape
-                      text: "\xe2\x95\xb1\xe2\x95\xb2"
+                      text: "/\\"
                       align: TOP_MID
                       y: 210
                       text_font: font_normal
@@ -274,7 +274,7 @@ lvgl:
                 height: 340
                 align: TOP_RIGHT
                 x: -20
-                y: 65
+                y: 145
                 bg_opa: TRANSP
                 border_width: 0
                 scrollable: false
@@ -353,7 +353,7 @@ lvgl:
                       widgets:
                         - label:
                             id: lbl_preset1_name
-                            text: "P1"
+                            text: "\u2460"
                             align: TOP_LEFT
                             x: 12
                             y: 8
@@ -381,10 +381,10 @@ lvgl:
                             char b3[8]; snprintf(b3,sizeof(b3),"%d%%",id(preset1_acc));
                             lv_label_set_text(id(lbl_arc_acc_val), b3);
                             int a=id(preset1_acc); const char* sh;
-                            if(a>=80) sh="\xe2\x95\xb1\xe2\x95\xb2";
-                            else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if(a>=80) sh="/\\";
+                            else if(a>=55) sh="/_\\";
+                            else if(a>=35) sh="/___\\";
+                            else sh="/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), sh);
                             ESP_LOGI("preset","P1 geladen: %ums %dRPM %d%%",id(preset1_hp_ms),id(preset1_rpm),id(preset1_acc));
                       on_long_press:
@@ -411,7 +411,7 @@ lvgl:
                       widgets:
                         - label:
                             id: lbl_preset2_name
-                            text: "P2"
+                            text: "\u2461"
                             align: TOP_LEFT
                             x: 12
                             y: 8
@@ -439,10 +439,10 @@ lvgl:
                             char b3[8]; snprintf(b3,sizeof(b3),"%d%%",id(preset2_acc));
                             lv_label_set_text(id(lbl_arc_acc_val), b3);
                             int a=id(preset2_acc); const char* sh;
-                            if(a>=80) sh="\xe2\x95\xb1\xe2\x95\xb2";
-                            else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if(a>=80) sh="/\\";
+                            else if(a>=55) sh="/_\\";
+                            else if(a>=35) sh="/___\\";
+                            else sh="/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), sh);
                             ESP_LOGI("preset","P2 geladen: %ums %dRPM %d%%",id(preset2_hp_ms),id(preset2_rpm),id(preset2_acc));
                       on_long_press:
@@ -469,7 +469,7 @@ lvgl:
                       widgets:
                         - label:
                             id: lbl_preset3_name
-                            text: "P3"
+                            text: "\u2462"
                             align: TOP_LEFT
                             x: 12
                             y: 8
@@ -497,10 +497,10 @@ lvgl:
                             char b3[8]; snprintf(b3,sizeof(b3),"%d%%",id(preset3_acc));
                             lv_label_set_text(id(lbl_arc_acc_val), b3);
                             int a=id(preset3_acc); const char* sh;
-                            if(a>=80) sh="\xe2\x95\xb1\xe2\x95\xb2";
-                            else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if(a>=80) sh="/\\";
+                            else if(a>=55) sh="/_\\";
+                            else if(a>=35) sh="/___\\";
+                            else sh="/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), sh);
                             ESP_LOGI("preset","P3 geladen: %ums %dRPM %d%%",id(preset3_hp_ms),id(preset3_rpm),id(preset3_acc));
                       on_long_press:
@@ -527,7 +527,7 @@ lvgl:
                       widgets:
                         - label:
                             id: lbl_preset4_name
-                            text: "P4"
+                            text: "\u2463"
                             align: TOP_LEFT
                             x: 12
                             y: 8
@@ -555,10 +555,10 @@ lvgl:
                             char b3[8]; snprintf(b3,sizeof(b3),"%d%%",id(preset4_acc));
                             lv_label_set_text(id(lbl_arc_acc_val), b3);
                             int a=id(preset4_acc); const char* sh;
-                            if(a>=80) sh="\xe2\x95\xb1\xe2\x95\xb2";
-                            else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if(a>=80) sh="/\\";
+                            else if(a>=55) sh="/_\\";
+                            else if(a>=35) sh="/___\\";
+                            else sh="/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), sh);
                             ESP_LOGI("preset","P4 geladen: %ums %dRPM %d%%",id(preset4_hp_ms),id(preset4_rpm),id(preset4_acc));
                       on_long_press:
@@ -585,7 +585,7 @@ lvgl:
                       widgets:
                         - label:
                             id: lbl_preset5_name
-                            text: "P5"
+                            text: "\u2464"
                             align: TOP_LEFT
                             x: 12
                             y: 8
@@ -613,10 +613,10 @@ lvgl:
                             char b3[8]; snprintf(b3,sizeof(b3),"%d%%",id(preset5_acc));
                             lv_label_set_text(id(lbl_arc_acc_val), b3);
                             int a=id(preset5_acc); const char* sh;
-                            if(a>=80) sh="\xe2\x95\xb1\xe2\x95\xb2";
-                            else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-                            else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-                            else sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+                            if(a>=80) sh="/\\";
+                            else if(a>=55) sh="/_\\";
+                            else if(a>=35) sh="/___\\";
+                            else sh="/_____\\";
                             lv_label_set_text(id(lbl_trapez_shape), sh);
                             ESP_LOGI("preset","P5 geladen: %ums %dRPM %d%%",id(preset5_hp_ms),id(preset5_rpm),id(preset5_acc));
                       on_long_press:

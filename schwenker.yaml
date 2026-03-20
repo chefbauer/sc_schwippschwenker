@@ -210,10 +210,10 @@ script:
           char b3[6]; snprintf(b3,sizeof(b3),"%d%%", a);
           lv_label_set_text(id(lbl_arc_acc_val), b3);
           const char* sh;
-          if(a>=80)      sh="\xe2\x95\xb1\xe2\x95\xb2";
-          else if(a>=55) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x95\xb2";
-          else if(a>=35) sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
-          else           sh="\xe2\x95\xb1\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x80\xbe\xe2\x95\xb2";
+          if(a>=80)      sh="/\\";
+          else if(a>=55) sh="/_\\";
+          else if(a>=35) sh="/___\\";
+          else           sh="/_____\\";
           lv_label_set_text(id(lbl_trapez_shape), sh);
       - lvgl.widget.show: overlay_schwenker_settings
 
