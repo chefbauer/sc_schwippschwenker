@@ -345,7 +345,7 @@ lvgl:
                               text_font: font_icon_xl
                               text_color: 0xFFFFFF
                     # ── Slot-Marker: Kreise mit Slot-Farben, rotieren mit Motor-Winkel ──
-                    - obj:
+                    - button:
                         id: ring_slot1_marker
                         width: 70
                         height: 70
@@ -358,13 +358,16 @@ lvgl:
                         align: TOP_LEFT
                         x: 145
                         y: 285
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(1);
                         widgets:
                           - label:
                               text: "1"
                               align: CENTER
                               text_font: font_temp
                               text_color: 0xFFFFFF
-                    - obj:
+                    - button:
                         id: ring_slot2_marker
                         width: 70
                         height: 70
@@ -377,13 +380,16 @@ lvgl:
                         align: TOP_LEFT
                         x: 24
                         y: 215
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(2);
                         widgets:
                           - label:
                               text: "2"
                               align: CENTER
                               text_font: font_temp
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: ring_slot3_marker
                         width: 70
                         height: 70
@@ -396,13 +402,16 @@ lvgl:
                         align: TOP_LEFT
                         x: 24
                         y: 75
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(3);
                         widgets:
                           - label:
                               text: "3"
                               align: CENTER
                               text_font: font_temp
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: ring_slot4_marker
                         width: 70
                         height: 70
@@ -415,13 +424,16 @@ lvgl:
                         align: TOP_LEFT
                         x: 145
                         y: 5
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(4);
                         widgets:
                           - label:
                               text: "4"
                               align: CENTER
                               text_font: font_temp
                               text_color: 0x000000
-                    - obj:
+                    - button:
                         id: ring_slot5_marker
                         width: 70
                         height: 70
@@ -434,13 +446,16 @@ lvgl:
                         align: TOP_LEFT
                         x: 266
                         y: 75
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(5);
                         widgets:
                           - label:
                               text: "5"
                               align: CENTER
                               text_font: font_temp
                               text_color: 0xFFFFFF
-                    - obj:
+                    - button:
                         id: ring_slot6_marker
                         width: 70
                         height: 70
@@ -453,6 +468,9 @@ lvgl:
                         align: TOP_LEFT
                         x: 266
                         y: 215
+                        on_click:
+                          - lambda: |-
+                              id(script_schwenker_goto_slot)->execute(6);
                         widgets:
                           - label:
                               text: "6"
@@ -1600,6 +1618,7 @@ lvgl:
                                   min_value: 500
                                   max_value: 2000
                                   value: 1000
+                                  step: 50
                                   on_release:
                                     - lambda: |-
                                         id(script_motor_set_work_current_mA).execute(x);
