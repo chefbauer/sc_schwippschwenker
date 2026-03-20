@@ -243,8 +243,8 @@ lvgl:
                       align: TOP_MID
                       y: 35
                       min_value: 1
-                      max_value: 40
-                      value: 4           # default
+                      max_value: 100
+                      value: 15          # default
                       adjustable: true
                       arc_color: 0x226622
                       arc_width: 18

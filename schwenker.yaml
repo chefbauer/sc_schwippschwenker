@@ -46,7 +46,7 @@ globals:
   - id: sw_max_speed_rpm
     type: int
     restore_value: yes
-    initial_value: '15'         # RPM am Sinus-Scheitel
+    initial_value: '100'        # RPM am Sinus-Scheitel
 
   - id: sw_acc
     type: int
@@ -65,6 +65,11 @@ globals:
     initial_value: '0'
 
   - id: sw_motor_busy          # true = Motor läuft aktiv (Idle-Timeout gesperrt)
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  - id: sw_stop_pending        # true = Stop nach aktuellem Halbzyklus
     type: bool
     restore_value: no
     initial_value: 'false'
@@ -166,14 +171,8 @@ script:
           id(can_bus)->send_data(${motor_can_id}, false, data);
       - delay: 150ms   # init settle
       - lambda: |-
-          // ── NVS-Schutz: veraltete Flash-Werte auf gültige Grenzen klemmen ──
-          if (id(sw_max_speed_rpm) < 1 || id(sw_max_speed_rpm) > 20) {
-            id(sw_max_speed_rpm) = std::max(1, std::min(20, id(sw_max_speed_rpm)));
-            lv_arc_set_value(id(arc_rpm), id(sw_max_speed_rpm));
-            char buf[6]; snprintf(buf, sizeof(buf), "%d", id(sw_max_speed_rpm));
-            lv_label_set_text(id(lbl_arc_rpm_val), buf);
-            ESP_LOGW("schwenker", "sw_max_speed_rpm korrigiert auf %d", id(sw_max_speed_rpm));
-          }
+          // NVS-Schutz: nur Höchstwert prüfen (> 3000 RPM wäre Blödsinn)
+          if (id(sw_max_speed_rpm) < 1) id(sw_max_speed_rpm) = 1;
           if (id(sw_halbperiode_ms) < 1000 || id(sw_halbperiode_ms) > 10000) {
             id(sw_halbperiode_ms) = std::max((uint32_t)1000, std::min((uint32_t)10000, id(sw_halbperiode_ms)));
             lv_arc_set_value(id(arc_schwenkzeit), (int)(id(sw_halbperiode_ms) / 100));
@@ -520,6 +519,23 @@ interval:
           ESP_LOGD("schwenker", "Dir:%+d spd:%3d RPM sin:%.3f",
                    id(sw_richtung), speed, sinval);
           if (id(sw_phase_ms) >= id(sw_halbperiode_ms)) {
+            if (id(sw_stop_pending)) {
+              // Zyklus beendet: jetzt wirklich stoppen
+              id(sw_stop_pending) = false;
+              id(sw_aktiv) = false;
+              uint8_t sacc = (uint8_t)id(sw_acc);
+              int32_t stgt = (int32_t)(id(sw_richtung)) * 8000000;
+              uint32_t sv  = (uint32_t)(stgt) & 0x00FFFFFFU;
+              id(can_bus)->send_data(${motor_can_id}, false,
+                  add_crc(${motor_can_id}, { 0xF5, 0x00, 0x00, sacc,
+                      (uint8_t)((sv>>16)&0xFF), (uint8_t)((sv>>8)&0xFF), (uint8_t)(sv&0xFF) }));
+              lv_obj_set_style_bg_color(id(btn_schwenker_main), lv_color_hex(0x666666), 0);
+              lv_obj_set_style_bg_color(id(btn_schwenker_overlay_toggle), lv_color_hex(0x666666), 0);
+              id(sw_motor_busy) = false;
+              id(sw_motor_last_move_ms) = millis();
+              ESP_LOGI("schwenker", "STOP: Zyklus beendet, Motor bremst");
+              return;
+            }
             id(sw_richtung) *= -1;
             id(sw_phase_ms)  = 0;
             ESP_LOGI("schwenker", "Richtungswechsel → %+d", id(sw_richtung));
