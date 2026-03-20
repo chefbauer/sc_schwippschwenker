@@ -217,24 +217,22 @@ script:
     then:
       - lambda: |-
           id(sw_motor_busy) = true;
-      # ── Schwenker geordnet stoppen falls er läuft ───────────
+      # ── Schwenker sanft stoppen falls er läuft ───────────
       - if:
           condition:
             lambda: return id(sw_aktiv);
           then:
             - lambda: |-
-                id(sw_aktiv) = false;
-                lv_obj_set_style_bg_color(id(btn_schwenker_main), lv_color_hex(0x666666), 0);
-                lv_obj_set_style_bg_color(id(btn_schwenker_overlay_toggle), lv_color_hex(0x666666), 0);
-                ESP_LOGI("schwenker", "goto_slot: Schwenker aktiv – stoppe geordnet vor Fahrt");
-                // F5 speed=0 mit acc-Rampe → Motor bremst sanft ab
-                uint8_t acc    = (uint8_t)id(sw_acc);
-                int32_t tgt    = (int32_t)(id(sw_richtung)) * 8000000;
-                uint32_t val   = (uint32_t)(tgt) & 0x00FFFFFFU;
-                id(can_bus)->send_data(${motor_can_id}, false,
-                    add_crc(${motor_can_id}, { 0xF5, 0x00, 0x00, acc,
-                        (uint8_t)((val>>16)&0xFF), (uint8_t)((val>>8)&0xFF), (uint8_t)(val&0xFF) }));
-            - delay: 800ms   # Motor abbremsen lassen (bei max. 15 RPM mit acc ausreichend)
+                id(sw_stop_pending) = true;
+                lv_obj_set_style_bg_color(id(btn_schwenker_main), lv_color_hex(0xAA8800), 0);
+                lv_obj_set_style_bg_color(id(btn_schwenker_overlay_toggle), lv_color_hex(0xAA8800), 0);
+                ESP_LOGI("schwenker", "goto_slot: Schwenker läuft – warte auf Zyklusende");
+            # Warten bis Interval den Halbzyklus beendet und sw_aktiv=false setzt
+            - wait_until:
+                condition:
+                  lambda: return !id(sw_aktiv);
+                timeout: 10s
+            - delay: 200ms   # kurze Beruhigungspause nach dem Stop
       # Closed Loop + Work current aus NVS laden
       - lambda: |-
           id(can_bus)->send_data(${motor_can_id}, false, add_crc(${motor_can_id}, { 0x82, 0x04 }));

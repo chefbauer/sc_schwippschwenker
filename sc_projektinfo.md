@@ -394,6 +394,15 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 - [x] `on_boot priority:-200`: Motor fährt auf 0° (script_motor_set_zero)
 - [x] `schwenker_ring` Hintergrundfarbe hellblau (#2299CC)
 - [x] Slot-Tabs: 60px breit (war 50px), anklickbar → Schwenker-Navigation
+- [x] `sw_work_current_mA` (NVS persistent): Strom wird beim Start und bei goto_slot geladen
+- [x] Motorstrom-Slider (`slider_motor_strom`): speichert bei Release in NVS, on_boot sync
+- [x] Motor Idle-Timeout: 10 s ohne Bewegung → FOC-Modus + 500 mA
+- [x] `sw_motor_busy` + `sw_stop_pending`: verhindert Timeout während Bewegung bzw. Slot-Fahrt
+- [x] Sanfter Stop: Halbzyklus wird fertig gefahren bevor Motor stoppt
+- [x] Slot-Marker (ring_slot1-6_marker): `obj` → `button` + on_click → goto_slot(N)
+- [x] goto_slot: stoppt Schwenker geordnet (F5+800ms) bevor Positionsfahrt
+- [x] Wochentag-Fix: `t.day_of_week - 1` (war 1-basiert, Array 0-basiert)
+- [x] arc_rpm: max_value 100, default 15 RPM (kein Upper-Clamp mehr)
 
 ---
 
@@ -418,8 +427,12 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 | `sw_richtung` | int | +1 | +1 = CW, -1 = CCW |
 | `sw_phase_ms` | uint32_t | 0 | Fortschritt in aktueller Halbperiode |
 | `sw_halbperiode_ms` | uint32_t | 3000 | Zeit pro Richtung (ms) |
-| `sw_max_speed_rpm` | int | 15 | Spitzengeschwindigkeit |
+| `sw_max_speed_rpm` | int | 100 | Spitzengeschwindigkeit (kein Upper-Clamp) |
 | `sw_acc` | int | 200 | Internes Ramping 1–254 (Motor interpoliert Stufen) |
+| `sw_work_current_mA` | int | 1000 | Arbeitsstrom in mA (NVS persistent, 500–2000) |
+| `sw_motor_last_move_ms` | uint32_t | 0 | millis() beim letzten Stopp (0 = inaktiv) |
+| `sw_motor_busy` | bool | false | Blockiert Idle-Timeout während Bewegung |
+| `sw_stop_pending` | bool | false | Sanfter Stop angefordert – wartet auf Zyklusende |
 
 **Takt (50ms):**
 - `speed = max_rpm * sin(π * phase_ms / T_half)` → 0→max→0 pro Halbperiode
@@ -431,11 +444,21 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 
 | Script | Beschreibung |
 |---|---|
-| `script_schwenker_start` | Motor-Init (Mode 4, 64 Steps, 2000mA, idle min) → Sinus starten |
-| `script_schwenker_stop` | Sinus stoppen → Mode 5 (FOC, kein Haltestrom) → F5 speed=0 |
+| `script_schwenker_start` | Motor-Init (Mode 4, 64 Steps, `sw_work_current_mA`, idle min) → Sinus starten |
+| `script_schwenker_stop` | Setzt `sw_stop_pending=true` + Buttons orange → Stop erfolgt am nächsten Richtungswechsel |
 | `script_system_ein` | system_ein=true → Power-Button grün → Thermostat COOL |
 | `script_system_aus` | system_ein=false → Power-Button rot → Schwenker stopp → Thermostat OFF → Pumpen aus |
-| `script_schwenker_goto_slot` | Fährt Motor zu Slot-Position (kürzester Weg via sensor_motor_position) |
+| `script_schwenker_goto_slot` | Stoppt Schwenker geordnet (F5 speed=0 + 800ms), dann fährt Motor zu Slot-Position |
+
+**Motor Idle-Timeout (50ms-Interval):**
+- Nach jedem Stopp: `sw_motor_last_move_ms = millis()`
+- 10 s ohne Bewegung (wenn !sw_aktiv && !sw_motor_busy): → Mode 5 (FOC) + Strom auf 500 mA
+- `sw_motor_busy` wird während goto_slot und trim_slider aktiv gesetzt
+
+**Sanfter Stop (`sw_stop_pending`):**
+- Stop-Button setzt `sw_stop_pending=true`, Buttons orange
+- 50ms-Interval prüft bei Richtungswechsel: falls true → F5 speed=0 + Buttons grau + `sw_aktiv=false`
+- Verhindert abruptes Stoppen mitten im Halbzyklus
 
 **Slot-Positionsnavigation (`script_schwenker_goto_slot`):**
 - Parameter: `slot` (int, 1–6)
@@ -495,6 +518,14 @@ Alle Sensoren auf `i2c_id: i2c_bus` (fremdkonfiguriert in main_config).
 | 2026-03-10 (session) | — | Slot-Tabs: 50→60px, clickable+on_click → script_schwenker_goto_slot(N); Timer-Areas 240→230px |
 | 2026-03-10 (session) | — | schwenker.yaml: script_schwenker_goto_slot (Slot 1=0°…6=300°, kürzester Weg) |
 | 2026-03-10 (session) | — | hardware.yaml: on_boot priority:-200 → script_motor_set_zero (Motor auf 0°) |
+| 2026-03-20 (session) | — | schwenker.yaml: `sw_work_current_mA` (NVS), Motorstrom-Slider speichert + on_boot sync |
+| 2026-03-20 (session) | — | schwenker.yaml: Motor Idle-Timeout 10s → FOC + 500mA; `sw_motor_busy` + `sw_motor_last_move_ms` |
+| 2026-03-20 (session) | — | schwenker.yaml: Sanfter Stop via `sw_stop_pending` – Halbzyklus fertig, dann stoppen |
+| 2026-03-20 (session) | — | schwenker.yaml: script_schwenker_stop komplett überarbeitet (pending-Flag statt Sofortstopp) |
+| 2026-03-20 (session) | — | lvgl_basis.yaml: Slot-Marker ring_slot1-6: obj → button + on_click → goto_slot(N) |
+| 2026-03-20 (session) | — | schwenker.yaml: goto_slot stoppt Schwenker geordnet (F5+800ms) vor Positionsfahrt |
+| 2026-03-20 (session) | — | schwenker.yaml: Speed-Clamp entfernt, max_value arc_rpm=100, default=15 RPM |
+| 2026-03-20 (session) | — | lvgl_basis.yaml: Wochentag-Fix `t.day_of_week - 1` (1-basiert → 0-basiert) |
 
 
 ---
