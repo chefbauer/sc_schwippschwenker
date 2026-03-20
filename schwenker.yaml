@@ -194,24 +194,18 @@ script:
     mode: single
     then:
       - lambda: |-
-          id(sw_aktiv) = false;
-          lv_obj_set_style_bg_color(id(btn_schwenker_main), lv_color_hex(0x666666), 0);
-          lv_obj_set_style_bg_color(id(btn_schwenker_overlay_toggle), lv_color_hex(0x666666), 0);
-          ESP_LOGI("schwenker", "STOP");
-          // F5 speed=0 an aktuellem Ziel → Motor bremst und stoppt (FOC via Idle-Timeout nach 10 s)
-          uint8_t acc   = (uint8_t)id(sw_acc);
-          int32_t target = (int32_t)(id(sw_richtung)) * 8000000;
-          uint32_t val  = (uint32_t)(target) & 0x00FFFFFFU;
-          uint8_t p_hh  = (uint8_t)((val >> 16) & 0xFF);
-          uint8_t p_h   = (uint8_t)((val >>  8) & 0xFF);
-          uint8_t p_l   = (uint8_t)( val         & 0xFF);
-          id(can_bus)->send_data(${motor_can_id}, false,
-              add_crc(${motor_can_id}, { 0xF5, 0x00, 0x00, acc, p_hh, p_h, p_l }));
-      - delay: 300ms
-      - lambda: |-
-          id(sw_motor_busy) = false;
-          id(sw_motor_last_move_ms) = millis();
-          ESP_LOGI("schwenker", "STOP fertig – Idle-Timeout aktiv");
+          if (!id(sw_aktiv)) {
+            // Schwenker läuft nicht – sofortiger No-op
+            id(sw_motor_busy) = false;
+            id(sw_motor_last_move_ms) = millis();
+            ESP_LOGI("schwenker", "STOP: war bereits inaktiv");
+            return;
+          }
+          // Schwenker läuft → pending setzen, Buttons orange, warte auf Zyklusende
+          id(sw_stop_pending) = true;
+          lv_obj_set_style_bg_color(id(btn_schwenker_main), lv_color_hex(0xAA8800), 0);
+          lv_obj_set_style_bg_color(id(btn_schwenker_overlay_toggle), lv_color_hex(0xAA8800), 0);
+          ESP_LOGI("schwenker", "STOP angefordert – warte auf Zyklusende");
 
   # ── Schwenker fährt zu einem der 6 Slot-Positionen ───────
   #   Slot 1 = 0°, Slot 2 = 60°, Slot 3 = 120°,
